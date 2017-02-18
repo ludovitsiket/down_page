@@ -140,19 +140,23 @@ def stored_data(directory):
 
 def change_local_html(html_file, directory):
     input_file,output_file = stored_data(directory)
-    lines = []
     with open(input_file, 'r') as input_data:
         data_to_local_page = input_data.readlines()
         with open(output_file, 'r') as output_data:
             data_from_local_page = output_data.readlines()
-            with open(html_file, 'r+') as result:
+            with open(html_file, 'r') as result:
                 print ('Upravujem stiahnutu web stranku pre offline citanie.')
                 replaced_urls = replacing(result.read(), data_from_local_page, data_to_local_page)
-#                print(replaced_urls)
+                with open(html_file, 'w') as result:
+                    result.write(replaced_urls)
           
 def replacing(text_str, remote_url, local_url):
+    stripped_remote_url = remote_url[:]
+    stripped_local_url = local_url[:]
     if len(remote_url) == len(local_url):
-        for img_urls in zip(remote_url[:], local_url[:]):
+        for img_urls in zip(stripped_remote_url, stripped_local_url):
+            stripped_local_url = os.path.basename(str(stripped_local_url))
+            print(stripped_local_url)
             text_str = text_str.replace(img_urls[0][:-1], img_urls[1][:-1])
     return text_str
           
