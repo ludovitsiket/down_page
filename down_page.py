@@ -23,7 +23,7 @@ def check_correct_url(url):
     return url
 
 def help_syntax():
-    print("""Syntax (GNU/Linux, OS X) : python down_page.py http://www.name_of_page.com local_directory_to_download """)
+    print("""Syntax (GNU/Linux, macOS) : python down_page.py http://www.name_of_page.com local_directory_to_download """)
     print("""Syntax (Windows)         : python.exe down_page.py http://www.name_of_page.com local_directory_to_download """)
     print("""Skript vyzaduje nainstalovany python 3.x""")
 
@@ -92,9 +92,12 @@ def join_path(directory, output_file):
     return os.path.join(directory,output_file)
 
 def create_file_name(directory, picture):
-    name=join_path(directory, picture).replace("/","")
-    name=os.path.join(directory, name)
-    return name
+    try:
+        name=join_path(directory, picture).replace("/","")
+        name=os.path.join(directory, name)
+        return name
+    except:
+        print('Nie je mozne vytvorit meno obrazka.')
 
 def check_picture_url(url, picture):
     if "http" in picture:
@@ -130,8 +133,25 @@ def download_images_from_web_page(directory, data_from_web_page,url):
                     except (ValueError, urllib.error.URLError):
                         pass
         print("Stahovanie obrazkov dokoncene.")
+        change_input_file(hidden_file)
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
+
+def change_input_file(local_file):
+    print('Formatovanie lokalnych url adries obrazkov.')
+    try:
+        cut_string = []
+        with open(local_file, 'r') as local_urls:
+            for line in local_urls:
+                x=local_urls.readline()
+                cut_string.append(x)
+        with open(local_file, 'w') as local_urls:
+            for line in cut_string:
+                line = os.path.basename(line)
+                local_urls.write(line)
+        print('Formatovanie dokoncene.')
+    except:
+        print('Formatovanie url adries obrazkov zlyhalo.')
 
 def stored_data(directory):
     file1 = os.path.join(directory, ".local_url_file")
@@ -146,19 +166,24 @@ def change_local_html(html_file, directory):
             data_from_local_page = output_data.readlines()
             with open(html_file, 'r') as result:
                 print ('Upravujem stiahnutu web stranku pre offline citanie.')
-                replaced_urls = replacing(result.read(), data_from_local_page, data_to_local_page)
-                with open(html_file, 'w') as result:
-                    result.write(replaced_urls)
+                result = result.readlines()
+                replaced_urls = replacing(result, data_from_local_page, data_to_local_page)
+    write_changes_to_html(html_file,replaced_urls)
           
 def replacing(text_str, remote_url, local_url):
-    stripped_remote_url = remote_url[:]
-    stripped_local_url = local_url[:]
+    stripped_remote_url = remote_url[:]   # OK
+    stripped_local_url = local_url[:]   # OK
     if len(remote_url) == len(local_url):
         for img_urls in zip(stripped_remote_url, stripped_local_url):
-            stripped_local_url = os.path.basename(str(stripped_local_url))
-            print(stripped_local_url)
             text_str = text_str.replace(img_urls[0][:-1], img_urls[1][:-1])
     return text_str
+
+def write_changes_to_html(file_to_write,data):
+    print('write changes')
+    data=str(data)
+    with open(file_to_write, 'w') as result:
+        result.write(data)
+    return
           
 def replacing_back(html_file, remote_url, local_url):
     return
