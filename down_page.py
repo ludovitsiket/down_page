@@ -11,7 +11,6 @@ def main():
             data_from_web_page = download_web_page_data(web_page_url)
             write_web_page_content_to_local_file(data_from_web_page, local_web_page,directory_to_download)
             download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-            change_local_html(local_html,directory_to_download)
         else:
             compare_web_page_content(web_page_url,directory_to_download,local_web_page)
     else:
@@ -158,34 +157,12 @@ def stored_data(directory):
     file2 = os.path.join(directory, ".remote_url_file")
     return (file1, file2)
 
-def change_local_html(html_file, directory):
-    input_file,output_file = stored_data(directory)
-    with open(input_file, 'r') as input_data:
-        data_to_local_page = input_data.readlines()
-        with open(output_file, 'r') as output_data:
-            data_from_local_page = output_data.readlines()
-            with open(html_file, 'r') as result:
-                print ('Upravujem stiahnutu web stranku pre offline citanie.')
-                result = result.readlines()
-                replaced_urls = replacing(result, data_from_local_page, data_to_local_page)
-    write_changes_to_html(html_file,replaced_urls)
-          
 def replacing(text_str, remote_url, local_url):
-    stripped_remote_url = remote_url[:]   # OK
-    stripped_local_url = local_url[:]   # OK
+    stripped_remote_url = remote_url[:]  
+    stripped_local_url = local_url[:]  
     if len(remote_url) == len(local_url):
         for img_urls in zip(stripped_remote_url, stripped_local_url):
             text_str = text_str.replace(img_urls[0][:-1], img_urls[1][:-1])
     return text_str
-
-def write_changes_to_html(file_to_write,data):
-    print('write changes')
-    data=str(data)
-    with open(file_to_write, 'w') as result:
-        result.write(data)
-    return
-          
-def replacing_back(html_file, remote_url, local_url):
-    return
 
 main()
