@@ -11,6 +11,7 @@ def main():
             data_from_web_page = download_web_page_data(web_page_url)
             write_web_page_content_to_local_file(data_from_web_page, local_web_page,directory_to_download)
             download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
+            replacing(local_web_page, directory_to_download)
         else:
             compare_web_page_content(web_page_url,directory_to_download,local_web_page)
     else:
@@ -157,12 +158,16 @@ def stored_data(directory):
     file2 = os.path.join(directory, ".remote_url_file")
     return (file1, file2)
 
-def replacing(text_str, remote_url, local_url):
-    stripped_remote_url = remote_url[:]  
-    stripped_local_url = local_url[:]  
-    if len(remote_url) == len(local_url):
-        for img_urls in zip(stripped_remote_url, stripped_local_url):
-            text_str = text_str.replace(img_urls[0][:-1], img_urls[1][:-1])
-    return text_str
+def replacing(text_str, directory):
+    local_url, remote_url = stored_data(directory)
+    text_str = os.path.join(directory, text_str)
+    with open(text_str, 'r') as source_file:
+        data=source_file.read()
+        try:
+            for img_urls in zip(remote_url[:], local_url[:]):
+                output_data = data.replace(img_urls[0][:-1], img_urls[1][:-1])
+            return output_data
+        except:
+            print('Prepisanie url adries obrazkov v html subore neuspesne.')
 
 main()
