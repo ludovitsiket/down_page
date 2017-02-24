@@ -166,8 +166,14 @@ def replacing(text_str, directory):
         try:
             for img_urls in zip(remote_url[:], local_url[:]):
                 output_data = data.replace(img_urls[0][:-1], img_urls[1][:-1])
-            return output_data
+                write_changed_content(source_file, output_data)
+#            return output_data
         except:
             print('Prepisanie url adries obrazkov v html subore neuspesne.')
+
+def write_changed_content(file_for_change, input_data):
+    with open(file_for_change, 'w') as new_file:
+        new_file.write(input_data)
+    return
 
 main()
