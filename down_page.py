@@ -163,18 +163,20 @@ def replacing(text_str, directory):
     text_str = os.path.join(directory, text_str)
     with open(text_str, 'r') as source_file:
         data=source_file.read()
-#        try:
-        retrieving_data_from_files(local_url, remote_url)
-        to_write = data_zip(local_url, remote_url)
-        print(to_write)
-#write_changed_content(file_for_change, input_data)
-#write_changed_content(file_for_change, input_data)
-#        except:
-#            print('Prepisanie url adries obrazkov v html subore neuspesne.')
+        try:
+            retrieving_data_from_files(local_url, remote_url)
+            to_write = data_zip(local_url, remote_url)
+        except:
+            print('Prepisanie url adries obrazkov v html subore neuspesne.')
+        write_changed_content(local_url, to_write[0])
+        write_changed_content(remote_url, to_write[1])
 
 def write_changed_content(file_for_change, input_data):
     with open(file_for_change, 'w') as new_file:
-        new_file.write(input_data)
+        x=0
+        while x <= len(input_data):
+            new_file.write(str(input_data))
+            x=x+1
     return
 
 def retrieving_data_from_files(file1, file2):
@@ -203,12 +205,11 @@ def data_zip(file1, file2):
         x = x+1
     luggage = zip(a, b)
     bunch_of_data = list(luggage)
-    print(bunch_of_data)
     return bunch_of_data
 
 def short_file_change(short_file, delta):
     with open(short_file, 'a+') as result_file:
-        x=delta
+        x=abs(delta)
         result_file.write(x*'\n')
     return result_file
 
