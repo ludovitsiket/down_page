@@ -1,4 +1,4 @@
-import urllib.request, sys, re, os, base64, difflib, requests
+import urllib.request, sys, re, os, base64, difflib, requests, collections
 
 def main():
     if True:
@@ -163,28 +163,14 @@ def replacing(text_str, directory):
     text_str = os.path.join(directory, text_str)
     with open(text_str, 'r') as source_file:
         data=source_file.read()
-        try:
-            retrieving_data_from_files(local_url, remote_url)
-            to_write = data_zip(local_url, remote_url)
-        except:
-            print('Prepisanie url adries obrazkov v html subore neuspesne.')
-        write_changed_content(local_url, to_write[0])
-        write_changed_content(remote_url, to_write[1])
-
-def write_changed_content(file_for_change, input_data):
-    with open(file_for_change, 'w') as new_file:
-        x=0
-        while x <= len(input_data):
-            new_file.write(str(input_data))
-            x=x+1
-    return
+        retrieving_data_from_files(local_url, remote_url)
 
 def retrieving_data_from_files(file1, file2):
     with open(file1, 'r') as subor1:
         data1 = subor1.readlines()
     with open(file2, 'r') as subor2:
         data2 = subor2.readlines()
-    delta = len(data1)-len(data2)
+    delta = abs(len(data1)-len(data2))
     if delta == 0:
         pass
     else:
@@ -192,25 +178,26 @@ def retrieving_data_from_files(file1, file2):
             short_file_change(file1, delta)
         else:
             short_file_change(file2, delta)
-    return (data1, data2)
-
-def data_zip(file1, file2):
-    a,b = retrieving_data_from_files(file1, file2)
-    luggage = zip(a, b)
-    bunch_of_data = list(luggage)
-    x=0
-    while x < len(file1):
-        a[x] = (bunch_of_data[x][1])
-        b[x] = (bunch_of_data[x][0])
-        x = x+1
-    luggage = zip(a, b)
-    bunch_of_data = list(luggage)
-    return bunch_of_data
+    d = collections.OrderedDict(zip(data1, data2))
+    inv_d = collections.OrderedDict(zip(d.values(), d.keys()))
+    result1, result2 = change_data(inv_d)
+    with open(file1, 'w') as subor1:
+        for line in result1:
+            subor1.write(line)
+    with open(file2, 'w') as subor2:
+        for line in result2:
+            subor2.write(line)
+    print('Hotovo.')
 
 def short_file_change(short_file, delta):
     with open(short_file, 'a+') as result_file:
         x=abs(delta)
         result_file.write(x*'\n')
     return result_file
+
+def change_data(data):
+    x = list(data.keys())
+    y = list(data.values())
+    return (x,y)
 
 main()
