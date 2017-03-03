@@ -7,11 +7,11 @@ def main():
         local_html = os.path.join(directory_to_download, local_web_page)
         web_page_url=check_correct_url(sys.argv[1])
         if os.path.isdir(directory_to_download) is not True:
-            make_directory_for_download(directory_to_download)
+            make_aimed_directory(directory_to_download)
             data_from_web_page = download_web_page_data(web_page_url)
-            write_web_page_content_to_local_file(data_from_web_page, local_web_page,directory_to_download)
+            save_web_page_content(data_from_web_page, local_web_page,directory_to_download)
             download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-            replacing(local_web_page, directory_to_download)
+            edit_for_offline_reading(local_web_page, directory_to_download)
         else:
             compare_web_page_content(web_page_url,directory_to_download,local_web_page)
     else:
@@ -27,7 +27,7 @@ def help_syntax():
     print("""Syntax (Windows)         : python.exe down_page.py http://www.name_of_page.com local_directory_to_download """)
     print("""Skript vyzaduje nainstalovany python 3.x""")
 
-def make_directory_for_download(directory):
+def make_aimed_directory(directory):
     try:
         os.mkdir(directory)
     except:
@@ -36,22 +36,22 @@ def make_directory_for_download(directory):
          
 def download_web_page_data(url):
     try:
-        r=requests.get(url)
-        r.encoding = 'utf-8'
-        data = r.text
+        content = requests.get(url)
+        content.encoding = 'utf-8'
+        data = content.text
         return data
     except:
         print("Nie je mozne nacitat obsah web stranky.")
         sys.exit()
 
-def write_web_page_content_to_local_file(data, destination, directory):
+def save_web_page_content(data, destination, directory):
     try:
         print("Stahujem web stranku.")
         downloaded_file=os.path.join(directory,destination)
-        with open(downloaded_file,"w") as local_file:
-            local_file.write(data)
+        with open(downloaded_file,"w") as local_page:
+            local_page.write(data)
         print("Web stranka stiahnuta.")
-        return local_file
+        return local_page
     except:
         print("Vyskytla sa chyba pri stahovani web stranky.")
         sys.exit()
@@ -63,17 +63,17 @@ def compare_web_page_content(url,directory,destination):
         local_content=os.path.join(directory, destination)
         with open(local_content, "r") as local:
             data=local.read()
-        diff = difflib.context_diff(actual_content.splitlines(), data.splitlines())
-        diff = (''.join(diff))
-        if not diff:
+        difference = difflib.context_diff(actual_content.splitlines(), data.splitlines())
+        difference = (''.join(difference))
+        if not difference:
             print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
         else:
             print("Doslo k zmene na web stranke.")
-            if "img" in diff:
+            if "img" in difference:
                 print("Zmena obrazku.")
             else:
                 print("Zmena obsahu.")
-            write_web_page_content_to_local_file(data, destination, directory)
+            save_web_page_content(data, destination, directory)
             download_images_from_web_page(directory,actual_content,url)
     except:
         print("Nepodarilo sa porovnat obsah stiahnutej web stranky s online verziou.")
@@ -133,11 +133,11 @@ def download_images_from_web_page(directory, data_from_web_page,url):
                     except (ValueError, urllib.error.URLError):
                         pass
         print("Stahovanie obrazkov dokoncene.")
-        change_input_file(hidden_file)
+        format_input_file(hidden_file)
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
 
-def change_input_file(local_file):
+def format_input_file(local_file):
     print('Formatovanie lokalnych url adries obrazkov.')
     try:
         cut_string = []
@@ -158,7 +158,7 @@ def stored_data(directory):
     file2 = os.path.join(directory, ".remote_url_file")
     return (file1, file2)
 
-def replacing(text_str, directory):
+def edit_for_offline_reading(text_str, directory):
     local_url, remote_url = stored_data(directory)
     text_str = os.path.join(directory, text_str)
     with open(text_str, 'r') as source_file:
@@ -175,12 +175,12 @@ def retrieving_data_from_files(file1, file2):
         pass
     else:
         if len(data1) < len(data2):
-            short_file_change(file1, delta)
+            adding_blank_lines(file1, delta)
         else:
-            short_file_change(file2, delta)
-    d = collections.OrderedDict(zip(data1, data2))
-    inv_d = collections.OrderedDict(zip(d.values(), d.keys()))
-    result1, result2 = change_data(inv_d)
+            adding_blank_lines(file2, delta)
+    dictionary = collections.OrderedDict(zip(data1, data2))
+    inverted_dict = collections.OrderedDict(zip(dictionary.values(), dictionary.keys()))
+    result1, result2 = change_data_between_files(inverted_dict)
     with open(file1, 'w') as subor1:
         for line in result1:
             subor1.write(line)
@@ -189,15 +189,15 @@ def retrieving_data_from_files(file1, file2):
             subor2.write(line)
     print('Hotovo.')
 
-def short_file_change(short_file, delta):
+def adding_blank_lines(short_file, delta):
     with open(short_file, 'a+') as result_file:
-        x=abs(delta)
-        result_file.write(x*'\n')
+        blank_lines = abs(delta)
+        result_file.write(blank_lines *'\n')
     return result_file
 
-def change_data(data):
-    x = list(data.keys())
-    y = list(data.values())
-    return (x,y)
+def change_data_between_files(data):
+    value1 = list(data.keys())
+    value2 = list(data.values())
+    return (value1, value2)
 
 main()
