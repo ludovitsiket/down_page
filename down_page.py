@@ -166,13 +166,17 @@ def stored_data(directory):
 def edit_page_for_offline_reading(text_str, directory):
     local_url, remote_url = stored_data(directory)
     text_str = os.path.join(directory, text_str)
+    get_and_change_data_in_files(local_url, remote_url)
     with open(text_str, 'r') as source_file:
         data = source_file.read()
-        get_and_change_data_in_files(local_url, remote_url)
-        find_and_replace_data()
+        images = find_images_on_page(data)
+        new_img_urls = find_and_replace_data(remote_url)
+        dictionary = collections.OrderedDict(zip(images, new_img_urls))
 
-def find_and_replace_data():
-    return
+def find_and_replace_data(remote_url):
+    with open(remote_url, 'r') as new_img_urls:
+        new_img = new_img_urls.readlines()
+    return new_img
 
 def get_and_change_data_in_files(file1, file2):
     delta, data1, data2 = count_difference(file1, file2)
