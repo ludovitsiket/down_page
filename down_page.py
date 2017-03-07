@@ -117,15 +117,15 @@ def base64_picture_download(picture_url, local_picture):
 def download_images_from_web_page(directory, data_from_web_page,url): 
     try:
         images = find_images_on_page(data_from_web_page)
-        hidden_file,origin_file = stored_data(directory)
+        local_file,remote_file = stored_data(directory)
         print("Stahujem obrazky. Cakajte prosim.")
-        with open(hidden_file, 'w') as hidden:
-            with open(origin_file, 'w') as origin:
+        with open(local_file, 'w') as local_urls:
+            with open(remote_file, 'w') as remote_urls:
                 for image in images:
                     image = check_picture_url(url, image)
-                    picture_name=create_file_name(directory, image)
-                    hidden.write(picture_name + '\n')
-                    origin.write(image + '\n')
+                    picture_name = create_file_name(directory, image)
+                    local_urls.write(picture_name + '\n')
+                    remote_urls.write(image + '\n')
                     try:
                         if "base64" in image:
                             base64_picture_download(image, picture_name)
@@ -134,7 +134,7 @@ def download_images_from_web_page(directory, data_from_web_page,url):
                     except (ValueError, urllib.error.URLError):
                         pass
         print("Stahovanie obrazkov dokoncene.")
-        format_input_file(hidden_file)
+        format_input_file(local_file)
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
 
@@ -172,6 +172,9 @@ def edit_page_for_offline_reading(text_str, directory):
         images = find_images_on_page(data)
         new_img_urls = find_and_replace_data(remote_url)
         dictionary = collections.OrderedDict(zip(images, new_img_urls))
+    with open(text_str, 'w') as new_file:
+        new_data = data
+        new_file.write(new_data)
 
 def find_and_replace_data(remote_url):
     with open(remote_url, 'r') as new_img_urls:
