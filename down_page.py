@@ -80,7 +80,7 @@ def compare_web_page_content(url,directory,destination):
         print("Nepodarilo sa porovnat obsah stiahnutej web stranky s online verziou.")
         sys.exit()
 
-def find_images_on_page(data):
+def find_images_on_page(data):  # funkcia spravna, overene
     try:
         img = re.findall('img .*?src="(.*?)"',data)
         return img
@@ -120,19 +120,25 @@ def download_images_from_web_page(directory, data_from_web_page,url):
         local_file,remote_file = stored_data(directory)
         print("Stahujem obrazky. Cakajte prosim.")
         with open(local_file, 'w') as local_urls:
-            with open(remote_file, 'w') as remote_urls:
-                for image in images:
-                    image = check_picture_url(url, image)
-                    picture_name = create_file_name(directory, image)
-                    local_urls.write(picture_name + '\n')
-                    remote_urls.write(image + '\n')
-                    try:
-                        if "base64" in image:
-                            base64_picture_download(image, picture_name)
-                        else:
-                            urllib.request.urlretrieve(image, picture_name)
-                    except (ValueError, urllib.error.URLError):
-                        pass
+            for image in images:
+                image = check_picture_url(url, image)
+                picture_name = create_file_name(directory, image)
+                local_urls.write(picture_name + '\n')
+        with open(remote_file, 'w') as remote_urls:
+            for image in images:
+                image = check_picture_url(url, image)
+                picture_name = create_file_name(directory, image)
+                remote_urls.write(image + '\n')
+        for image in images:
+            image = check_picture_url(url, image)
+            picture_name = create_file_name(directory, image)
+            try:
+                if "base64" in image:
+                    base64_picture_download(image, picture_name)
+                else:
+                    urllib.request.urlretrieve(image, picture_name)
+            except (ValueError, urllib.error.URLError):
+                pass
         print("Stahovanie obrazkov dokoncene.")
         format_input_file(local_file)
     except :
