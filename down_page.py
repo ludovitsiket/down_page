@@ -125,56 +125,10 @@ def download_images_from_web_page(directory, data_from_web_page,url):
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
 
-def read_and_cut_data(data):
-    cut_string = []
-    with open(data, 'r') as data_file:
-        for line in data_file:
-            content = data_file.readline()
-            cut_string.append(content)
-    with open(data, 'w') as data_file:
-        for line in cut_string:
-            line = os.path.basename(line)
-            data_file.write(line)
-    return data_file
-
 def stored_data(directory):
     file1 = os.path.join(directory, ".local_url_file")
     file2 = os.path.join(directory, ".remote_url_file")
     return (file1, file2)
-
-def edit_page_for_offline_reading(text_str, directory):
-    local_url, remote_url = stored_data(directory)
-    text_str = os.path.join(directory, text_str)
-    get_and_change_data_in_files(local_url, remote_url)
-    with open(text_str, 'r') as source_file:
-        data = source_file.read()
-        images = find_images_on_page(data)
-        new_img_urls = find_and_replace_data(remote_url)
-        dictionary = collections.OrderedDict(zip(images, new_img_urls))
-    with open(text_str, 'w') as new_file:
-        new_data = data
-        new_file.write(new_data)
-
-def find_and_replace_data(remote_url):
-    with open(remote_url, 'r') as new_img_urls:
-        new_img = new_img_urls.readlines()
-    return new_img
-
-def get_and_change_data_in_files(file1, file2):
-    delta, data1, data2 = count_difference(file1, file2)
-    if delta == 0:
-        pass
-    else:
-        if len(data1) < len(data2):
-            adding_blank_lines(file1, delta)
-        else:
-            adding_blank_lines(file2, delta)
-    dictionary = collections.OrderedDict(zip(data1, data2))
-    inverted_dict = collections.OrderedDict(zip(dictionary.values(), dictionary.keys()))
-    result1, result2 = change_data_between_files(inverted_dict)
-    write_data_per_line(file1, result1)
-    write_data_per_line(file2, result2)
-    print('Hotovo.')
 
 def count_difference(file1, file2):
     with open(file1, 'r') as subor1:
@@ -200,6 +154,45 @@ def write_data_per_line(aimed_file, data):
         for line in data:
             subor.write(line)
     return subor
+
+def get_and_change_data_in_files(file1, file2):
+    delta, data1, data2 = count_difference(file1, file2)
+    if delta == 0:
+        pass
+    else:
+        if len(data1) < len(data2):
+            adding_blank_lines(file1, delta)
+        else:
+            adding_blank_lines(file2, delta)
+    dictionary = collections.OrderedDict(zip(data1, data2))
+    inverted_dict = collections.OrderedDict(zip(dictionary.values(), dictionary.keys()))
+    result1, result2 = change_data_between_files(inverted_dict)
+    write_data_per_line(file1, result1)
+    write_data_per_line(file2, result2)
+    print('Hotovo.')
+
+def find_and_replace_data(remote_url):
+    with open(remote_url, 'r') as new_img_urls:
+        new_img = new_img_urls.readlines()
+    return new_img
+
+def edit_page_for_offline_reading(text_str, directory):
+    local_url, remote_url = stored_data(directory)
+    text_str = os.path.join(directory, text_str)
+    get_and_change_data_in_files(local_url, remote_url)
+    with open(text_str, 'r') as source_file:
+        data = source_file.read()
+        images = find_images_on_page(data)
+        new_img_urls = find_and_replace_data(remote_url)
+        dictionary = collections.OrderedDict(zip(images, new_img_urls))
+#    with open(text_str, 'w') as new_file:
+#        for key in dictionary:
+#            i = data.find(key)
+#            if i != -1:
+#                print(i)
+#            else:
+#                 print(key,'Kluc v slovniku neexistuje.')
+#        new_file.write(data)
 
 def main():
     if True:
