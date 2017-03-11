@@ -1,23 +1,5 @@
 import urllib.request, sys, re, os, base64, difflib, requests, collections
 
-def main():
-    if True:
-        directory_to_download=sys.argv[2]
-        local_web_page="page.html"
-        local_html = os.path.join(directory_to_download, local_web_page)
-        web_page_url=check_correct_url(sys.argv[1])
-        directory_presence = os.path.isdir(directory_to_download)
-        if directory_presence is not True:
-            make_aimed_directory(directory_to_download)
-            data_from_web_page = download_web_page_data(web_page_url)
-            save_web_page_content(data_from_web_page, local_web_page,directory_to_download)
-            download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-            edit_page_for_offline_reading(local_web_page, directory_to_download)
-        else:
-            compare_web_page_content(web_page_url,directory_to_download,local_web_page)
-    else:
-           help_syntax()
-
 def check_correct_url(url):
     if "http" not in url:
         url = "http://"+url
@@ -140,17 +122,8 @@ def download_images_from_web_page(directory, data_from_web_page,url):
             except (ValueError, urllib.error.URLError):
                 pass
         print("Stahovanie obrazkov dokoncene.")
-        format_input_file(local_file)
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
-
-def format_input_file(local_file):
-    print('Formatovanie lokalnych url adries obrazkov.')
-    try:
-        read_and_cut_data(local_file)
-        print('Formatovanie dokoncene.')
-    except:
-        print('Formatovanie url adries obrazkov zlyhalo.')
 
 def read_and_cut_data(data):
     cut_string = []
@@ -227,5 +200,23 @@ def write_data_per_line(aimed_file, data):
         for line in data:
             subor.write(line)
     return subor
+
+def main():
+    if True:
+        directory_to_download=sys.argv[2]
+        local_web_page="page.html"
+        local_html = os.path.join(directory_to_download, local_web_page)
+        web_page_url=check_correct_url(sys.argv[1])
+        directory_presence = os.path.isdir(directory_to_download)
+        if directory_presence is not True:
+            make_aimed_directory(directory_to_download)
+            data_from_web_page = download_web_page_data(web_page_url)
+            save_web_page_content(data_from_web_page, local_web_page,directory_to_download)
+            download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
+            edit_page_for_offline_reading(local_web_page, directory_to_download)
+        else:
+            compare_web_page_content(web_page_url,directory_to_download,local_web_page)
+    else:
+           help_syntax()
 
 main()
