@@ -40,29 +40,22 @@ def save_web_page_content(data, destination, directory):
         sys.exit()
 
 def compare_web_page_content(url,directory,destination):
-    try:
-        print("Web stranka uz je stiahnuta. Porovnavam obsah web stranky s aktualnou online verziou.")
-        actual_content = download_web_page_data(url)
-        local_content = os.path.join(directory, destination)
-        with open(local_content, "r") as local:
-            data = local.read()
-        difference = difflib.context_diff(actual_content.splitlines(), data.splitlines())
-        difference = (''.join(difference))
-        if not difference:
-            print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
-        else:
-            print("Doslo k zmene na web stranke.")
-            if "img" in difference:
-                print("Zmena obrazku.")
-            else:
-                print("Zmena obsahu.")
-            save_web_page_content(data, destination, directory)
-            download_images_from_web_page(directory,actual_content,url)
-    except:
-        print("Nepodarilo sa porovnat obsah stiahnutej web stranky s online verziou.")
-        sys.exit()
+    print("Web stranka uz je stiahnuta. Porovnavam obsah web stranky s aktualnou online verziou.")
+    actual_content = download_web_page_data(url)
+    edit_page_for_offline_reading(destination, directory)
+    xxx2 = (directory+'/'+destination)
+    with open(xxx2, "r") as local:
+        data = local.read()
+    difference = difflib.context_diff(actual_content.splitlines(), data.splitlines())
+    difference = (''.join(difference))
+    if not difference:
+        print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
+    else:
+        print("Doslo k zmene na web stranke.")
+        save_web_page_content(data, destination, directory)
+        download_images_from_web_page(directory,actual_content,url)
 
-def find_images_on_page(data):  # funkcia spravna, overene
+def find_images_on_page(data):  
     try:
         img = re.findall('img .*?src="(.*?)"',data)
         return img
@@ -75,11 +68,12 @@ def join_path(directory, output_file):
     return os.path.join(directory,output_file)
 
 def create_file_name(directory, picture):
-    try:
+    if True:
         name = join_path(directory, picture).replace("/","")
         name = os.path.join(directory, name)
+        name = name.replace(":","")
         return name
-    except:
+    else:
         print('Nie je mozne vytvorit meno obrazka.')
 
 def check_picture_url(url, picture):
@@ -105,11 +99,10 @@ def download_images_from_web_page(directory, data_from_web_page,url):
             for image in images:
                 image = check_picture_url(url, image)
                 picture_name = create_file_name(directory, image)
+                picture_name = os.path.basename(picture_name)
                 local_urls.write(picture_name + '\n')
         with open(remote_file, 'w') as remote_urls:
             for image in images:
-                image = check_picture_url(url, image)
-                picture_name = create_file_name(directory, image)
                 remote_urls.write(image + '\n')
         for image in images:
             image = check_picture_url(url, image)
@@ -130,19 +123,12 @@ def stored_data(directory):
     file2 = os.path.join(directory, ".remote_url_file")
     return (file1, file2)
 
-def count_difference(file1, file2):
+def read_data(file1, file2):
     with open(file1, 'r') as subor1:
         data1 = subor1.readlines()
     with open(file2, 'r') as subor2:
         data2 = subor2.readlines()
-    difference = abs(len(data1)-len(data2))
-    return (difference, data1, data2)
-
-def adding_blank_lines(short_file, delta):
-    with open(short_file, 'a+') as result_file:
-        blank_lines = abs(delta)
-        result_file.write(blank_lines *'\n')
-    return result_file
+    return (data1, data2)
 
 def change_data_between_files(data):
     value1 = list(data.keys())
@@ -156,14 +142,7 @@ def write_data_per_line(aimed_file, data):
     return subor
 
 def get_and_change_data_in_files(file1, file2):
-    delta, data1, data2 = count_difference(file1, file2)
-    if delta == 0:
-        pass
-    else:
-        if len(data1) < len(data2):
-            adding_blank_lines(file1, delta)
-        else:
-            adding_blank_lines(file2, delta)
+    data1, data2 = read_data(file1, file2)
     dictionary = collections.OrderedDict(zip(data1, data2))
     inverted_dict = collections.OrderedDict(zip(dictionary.values(), dictionary.keys()))
     result1, result2 = change_data_between_files(inverted_dict)
@@ -185,14 +164,11 @@ def edit_page_for_offline_reading(text_str, directory):
         images = find_images_on_page(data)
         new_img_urls = find_and_replace_data(remote_url)
         dictionary = collections.OrderedDict(zip(images, new_img_urls))
-#    with open(text_str, 'w') as new_file:
-#        for key in dictionary:
-#            i = data.find(key)
-#            if i != -1:
-#                print(i)
-#            else:
-#                 print(key,'Kluc v slovniku neexistuje.')
-#        new_file.write(data)
+        for key,value in dictionary.items():
+            data = data.replace(key, value) 
+    with open(text_str, 'w') as new_file:
+        new_file.write(data)
+    return new_file
 
 def main():
     if True:
