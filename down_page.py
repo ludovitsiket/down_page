@@ -41,13 +41,7 @@ def save_web_page_content(data, downloaded_file):
 def compare_web_page_content(url,destination):
     print("Web stranka uz je stiahnuta. Porovnavam obsah web stranky s aktualnou online verziou.")
     actual_content = download_web_page_data(url)
-<<<<<<< HEAD
-    asd = os.path.basename(destination)
-    local_content = os.path.join(directory, asd)  # Vratit povodne url adresy !
-    with open(local_content, "r") as local:
-=======
     with open(destination, "r") as local:
->>>>>>> continue
         data = local.read()  
     difference = difflib.context_diff(actual_content, data)
     difference = (''.join(difference))
@@ -55,11 +49,7 @@ def compare_web_page_content(url,destination):
         print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
     else:
         print("Doslo k zmene na web stranke.")
-<<<<<<< HEAD
-#        save_web_page_content(data, destination, directory)
-=======
 #        save_web_page_content(data_from_web_page, local_html)
->>>>>>> continue
 #        download_images_from_web_page(directory,actual_content,url)
 
 def find_images_on_page(data):  
@@ -161,12 +151,7 @@ def find_and_replace_data(remote_url):
         new_img = new_img_urls.readlines()
     return new_img
 
-<<<<<<< HEAD
-def edit_page_for_offline_reading(text_str, directory, local_url, remote_url):
-    text_str = os.path.join(directory, text_str)
-=======
 def edit_page_for_offline_reading(text_str, local_url, remote_url):
->>>>>>> continue
     with open(text_str, 'r') as source_file:
         data = source_file.read()
         images = find_images_on_page(data)
@@ -191,14 +176,6 @@ def main():
             data_from_web_page = download_web_page_data(web_page_url)
             save_web_page_content(data_from_web_page, local_html)
             download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-<<<<<<< HEAD
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-            edit_page_for_offline_reading(local_web_page, directory_to_download, local_url, remote_url)
-        else:
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-            edit_page_for_offline_reading(local_web_page, directory_to_download, local_url, remote_url)
-            compare_web_page_content(web_page_url,directory_to_download,local_web_page)
-=======
             local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)  # OK
             edit_page_for_offline_reading(local_html, local_url, remote_url)  # OK
         else:
@@ -206,7 +183,6 @@ def main():
             local_html = edit_page_for_offline_reading(local_html, local_url, remote_url) # NG
             print(local_html)
 #            compare_web_page_content(web_page_url,local_html)
->>>>>>> continue
     else:
            help_syntax()
 
