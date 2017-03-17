@@ -40,6 +40,7 @@ def save_web_page_content(data, downloaded_file):
 
 def compare_web_page_content(url,destination):
     print("Web stranka uz je stiahnuta. Porovnavam obsah web stranky s aktualnou online verziou.")
+    directory = os.path.dirname(destination)
     actual_content = download_web_page_data(url)
     with open(destination, "r") as local:
         data = local.read()  
@@ -49,8 +50,8 @@ def compare_web_page_content(url,destination):
         print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
     else:
         print("Doslo k zmene na web stranke.")
-#        save_web_page_content(data_from_web_page, local_html)
-#        download_images_from_web_page(directory,actual_content,url)
+#        save_web_page_content(actual_content, destination)
+#        download_images_from_web_page(directory, destination, url)
 
 def find_images_on_page(data):  
     try:
@@ -138,13 +139,17 @@ def write_data_per_line(aimed_file, data):
     return subor
 
 def get_and_change_data_in_files(file1, file2):
+    result1, result2 = change_data_in_memory(file1, file2)
+    write_data_per_line(file1, result1)
+    write_data_per_line(file2, result2)
+    return (file1, file2)
+
+def change_data_in_memory(file1, file2):
     data1, data2 = read_data(file1, file2)
     dictionary = collections.OrderedDict(zip(data1, data2))
     inverted_dict = collections.OrderedDict(zip(dictionary.values(), dictionary.keys()))
     result1, result2 = change_data_between_files(inverted_dict)
-    write_data_per_line(file1, result1)
-    write_data_per_line(file2, result2)
-    return (file1, file2)
+    return (result1, result2)
 
 def find_and_replace_data(remote_url):
     with open(remote_url, 'r') as new_img_urls:
@@ -156,6 +161,18 @@ def edit_page_for_offline_reading(text_str, local_url, remote_url):
         data = source_file.read()
         images = find_images_on_page(data)
         new_img_urls = find_and_replace_data(remote_url)
+        dictionary = collections.OrderedDict(zip(images, new_img_urls))
+        for key,value in dictionary.items():
+            data = data.replace(key, value) 
+    with open(text_str, 'w') as new_file:
+        new_file.write(data)
+    return new_file
+
+def edit_page_for_comparing(text_str, local_data, remote_data):
+    with open(text_str, 'r') as source_file:
+        data = source_file.read()
+        images = local_data
+        new_img_urls = remote_data
         dictionary = collections.OrderedDict(zip(images, new_img_urls))
         for key,value in dictionary.items():
             data = data.replace(key, value) 
@@ -176,13 +193,13 @@ def main():
             data_from_web_page = download_web_page_data(web_page_url)
             save_web_page_content(data_from_web_page, local_html)
             download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)  # OK
-            edit_page_for_offline_reading(local_html, local_url, remote_url)  # OK
+            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
+            edit_page_for_offline_reading(local_html, local_url, remote_url)
         else:
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)  # OK
-            local_html = edit_page_for_offline_reading(local_html, local_url, remote_url) # NG
-            print(local_html)
-#            compare_web_page_content(web_page_url,local_html)
+            local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
+            edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
+            compare_web_page_content(web_page_url, local_html)
+            edit_page_for_comparing(local_html, remote_img_list, local_img_list)
     else:
            help_syntax()
 
