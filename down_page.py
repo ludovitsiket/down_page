@@ -171,13 +171,13 @@ def edit_page_for_offline_reading(text_str, local_url, remote_url):
 def edit_page_for_comparing(text_str, local_data, remote_data):
     with open(text_str, 'r') as source_file:
         data = source_file.read()
-        images = local_data
-        new_img_urls = remote_data
-        dictionary = collections.OrderedDict(zip(images, new_img_urls))
-        for key,value in dictionary.items():
-            data = data.replace(key, value) 
+    images = local_data
+    new_img_urls = remote_data
+    dictionary = collections.OrderedDict(zip(images, new_img_urls))
     with open(text_str, 'w') as new_file:
-        new_file.write(data)
+        for key,value in dictionary.items():
+            data = data.replace(key, value)  # k remote urls pridava https:// = chyba !
+            new_file.write(data)
     return new_file
 
 def main():
