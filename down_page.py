@@ -6,8 +6,8 @@ def check_correct_url(url):
     return url
 
 def help_syntax():
-    print("""Syntax (GNU/Linux, macOS) : python down_page.py http://www.name_of_page.com local_directory_to_download """)
-    print("""Syntax (Windows)         : python.exe down_page.py http://www.name_of_page.com local_directory_to_download """)
+    print("""Syntax (GNU/Linux, macOS) : python down_page.py www.name_of_page.com local_directory_to_download """)
+    print("""Syntax (Windows)          : python.exe down_page.py www.name_of_page.com local_directory_to_download """)
     print("""Skript vyzaduje nainstalovany python 3.x""")
 
 def make_aimed_directory(directory):
@@ -44,7 +44,7 @@ def compare_web_page_content(url,destination):
     actual_content = download_web_page_data(url)
     with open(destination, "r") as local:
         data = local.read()  
-    difference = difflib.context_diff(actual_content, data)
+    difference = difflib.context_diff(actual_content, data) 
     difference = (''.join(difference))
     if not difference:
         print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
@@ -176,31 +176,34 @@ def edit_page_for_comparing(text_str, local_data, remote_data):
     dictionary = collections.OrderedDict(zip(images, new_img_urls))
     with open(text_str, 'w') as new_file:
         for key,value in dictionary.items():
-            data = data.replace(key, value)  # k remote urls pridava https:// = chyba !
-            new_file.write(data)
+            data = data.replace(key, value)  # k remote urls pridava https:// = chyba(?) 
+        new_file.write(data)
     return new_file
 
 def main():
-    if True:
-        directory_to_download=sys.argv[2]
-        local_web_page="page.html"
-        local_html = os.path.join(directory_to_download, local_web_page)
-        web_page_url=check_correct_url(sys.argv[1])
-        directory_presence = os.path.isdir(directory_to_download)
-        local_url, remote_url = stored_data(directory_to_download)
-        if directory_presence is not True:
-            make_aimed_directory(directory_to_download)
-            data_from_web_page = download_web_page_data(web_page_url)
-            save_web_page_content(data_from_web_page, local_html)
-            download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-            edit_page_for_offline_reading(local_html, local_url, remote_url)
+    try:
+        if len(sys.argv) > 3:
+            sys.exit()
         else:
-            local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
-            edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
-            compare_web_page_content(web_page_url, local_html)
-            edit_page_for_comparing(local_html, remote_img_list, local_img_list)
-    else:
+            directory_to_download=sys.argv[2]
+            local_web_page="page.html"
+            local_html = os.path.join(directory_to_download, local_web_page)
+            web_page_url=check_correct_url(sys.argv[1])
+            directory_presence = os.path.isdir(directory_to_download)
+            local_url, remote_url = stored_data(directory_to_download)
+            if directory_presence is not True:
+                make_aimed_directory(directory_to_download)
+                data_from_web_page = download_web_page_data(web_page_url)
+                save_web_page_content(data_from_web_page, local_html)
+                download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
+                local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
+                edit_page_for_offline_reading(local_html, local_url, remote_url)
+            else:
+                local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
+                edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
+                compare_web_page_content(web_page_url, local_html)
+                edit_page_for_comparing(local_html, remote_img_list, local_img_list)
+    except:
            help_syntax()
 
 main()
