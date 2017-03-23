@@ -39,19 +39,20 @@ def save_web_page_content(data, downloaded_file):
         sys.exit()
 
 def compare_web_page_content(url,destination):
-    print("Web stranka uz je stiahnuta. Porovnavam obsah web stranky s aktualnou online verziou.")
+    print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
     directory = os.path.dirname(destination)
     actual_content = download_web_page_data(url)
     with open(destination, "r") as local:
         data = local.read()  
-    difference = difflib.context_diff(actual_content, data) 
+    difference = difflib.ndiff(actual_content, data) 
     difference = (''.join(difference))
-    if not difference:
-        print("Ziadne zmeny. Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
+    difference = difference.replace(' ','')
+    if ('$Date') or ('<script>') or ('getElements') in difference:
+        print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
     else:
         print("Doslo k zmene na web stranke.")
-#        save_web_page_content(actual_content, destination)
-#        download_images_from_web_page(directory, destination, url)
+        save_web_page_content(actual_content, destination)
+        download_images_from_web_page(directory, destination, url)
 
 def find_images_on_page(data):  
     try:
