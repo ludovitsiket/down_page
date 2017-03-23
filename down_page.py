@@ -47,12 +47,17 @@ def compare_web_page_content(url,destination):
     difference = difflib.ndiff(actual_content, data) 
     difference = (''.join(difference))
     difference = difference.replace(' ','')
-    if (('$Date') or ('<script>') or ('getElements')) in difference:
+    exc = ['$Date','<script>','getElements']
+    # co ked bude exc a aj podstatna zmena stranky sucastne v difference ???!!!
+    count = 0
+    for exc in difference:
+        count = count+1
+    if count != 0:
         print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
     else:
         print("Doslo k zmene na web stranke.")
-        save_web_page_content(actual_content, destination)
-        download_images_from_web_page(directory, destination, url)
+#        save_web_page_content(actual_content, destination)
+#        download_images_from_web_page(directory, destination, url)
 
 def find_images_on_page(data):  
     try:
