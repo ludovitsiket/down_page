@@ -47,7 +47,7 @@ def compare_web_page_content(url,destination):
     difference = difflib.ndiff(actual_content, data) 
     difference = (''.join(difference))
     difference = difference.replace(' ','')
-    if ('$Date') or ('<script>') or ('getElements') in difference:
+    if (('$Date') or ('<script>') or ('getElements')) in difference:
         print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
     else:
         print("Doslo k zmene na web stranke.")
