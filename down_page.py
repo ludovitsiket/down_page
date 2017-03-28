@@ -46,16 +46,13 @@ def compare_web_page_content(url,destination):
         data = local.read()  
     difference = difflib.ndiff(actual_content, data) 
     difference = (''.join(difference))
-    difference = difference.replace(' ','')
-    exc = ['$Date','<script>','getElements']
-    # co ked bude exc a aj podstatna zmena stranky sucastne v difference ???!!!
-    count = 0
-    for exc in difference:
-        count = count+1
-    if count != 0:
-        print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
-    else:
-        print("Doslo k zmene na web stranke.")
+    difference = difference.replace('  ','')
+    d = difflib.ndiff(difference,data.replace('  ',''))
+    d = (''.join(d))
+    d = d.replace('  ','')
+    print(d)
+#        print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
+#        print("Doslo k zmene na web stranke.")
 #        save_web_page_content(actual_content, destination)
 #        download_images_from_web_page(directory, destination, url)
 
