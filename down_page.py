@@ -44,17 +44,32 @@ def compare_web_page_content(url,destination):
     actual_content = download_web_page_data(url)
     with open(destination, "r") as local:
         data = local.read()  
-    difference = difflib.ndiff(actual_content, data) 
-    difference = (''.join(difference))
-    difference = difference.replace('  ','')
-    d = difflib.ndiff(difference,data.replace('  ',''))
-    d = (''.join(d))
-    d = d.replace('  ','')
-    print(d)
-#        print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
-#        print("Doslo k zmene na web stranke.")
+    if '<html' and '<head>' in data:
+        print('Platna stiahnuta web stranka.')
+    else:
+        print('Poskodena stiahnuta web stranka. Prebehne jej nove stiahnutie.')
+        save_web_page_content(actual_content, destination)
+        download_images_from_web_page(directory, destination, url)
+        sys.exit()
+    d = content_differ(actual_content, data)
+    if '<script'  or '<googletag' in d:
+        if '<header' or 'link rel' or '<article' not in d:
+            print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
+        else:
+            print("Doslo k zmene na web stranke.")
+    else:
+        print("Doslo k zmene na web stranke.")
 #        save_web_page_content(actual_content, destination)
 #        download_images_from_web_page(directory, destination, url)
+
+def content_differ(actual, new):
+    difference = difflib.ndiff(actual, new) 
+    difference = (''.join(difference))
+    difference = difference.replace('  ','')
+    d = difflib.ndiff(difference, new.replace('  ',''))
+    d = (''.join(d))
+    d = d.replace('  ','')
+    return d
 
 def find_images_on_page(data):  
     try:
