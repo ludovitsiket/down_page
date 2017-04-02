@@ -44,23 +44,21 @@ def compare_web_page_content(url,destination):
     actual_content = download_web_page_data(url)
     with open(destination, "r") as local:
         data = local.read()  
-    if '<html' and '<head>' in data:
-        print('Platna stiahnuta web stranka.')
+    if '<html' in data and '<head>' in data and '</html>' in data:
+        pass  
     else:
         print('Poskodena stiahnuta web stranka. Prebehne jej nove stiahnutie.')
         save_web_page_content(actual_content, destination)
         download_images_from_web_page(directory, destination, url)
         sys.exit()
     d = content_differ(actual_content, data)
-    if '<script'  or '<googletag' in d:
-        if '<header' or 'link rel' or '<article' not in d:
-            print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
-        else:
+    if '<script' in d or '<googletag' in d or 'javascript' in d or 'banner' in d:
+        if '<header' in d or '<link rel' in d or 'a href' in d or '<meta' in d:
             print("Doslo k zmene na web stranke.")
-    else:
-        print("Doslo k zmene na web stranke.")
-#        save_web_page_content(actual_content, destination)
-#        download_images_from_web_page(directory, destination, url)
+#            save_web_page_content(actual_content, destination)
+#            download_images_from_web_page(directory, destination, url)
+        else:
+            print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
 
 def content_differ(actual, new):
     difference = difflib.ndiff(actual, new) 
