@@ -1,4 +1,4 @@
-import urllib.request, sys, re, os, base64, difflib, requests, collections
+import urllib.request, sys, re, os, base64, requests, collections
 
 def check_correct_url(url):
     if "http" not in url:
@@ -38,36 +38,25 @@ def save_web_page_content(data, downloaded_file):
         print("Vyskytla sa chyba pri stahovani web stranky.")
         sys.exit()
 
-def compare_web_page_content(url,destination):
+def compare_web_page_content(url,destination,temporary_html):
     print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
     directory = os.path.dirname(destination)
     actual_content = download_web_page_data(url)
-    with open(destination, "r") as local:
-        data = local.read()  
-    if '<html' in data and '<head>' in data and '</html>' in data:
-        pass  
-    else:
-        print('Poskodena stiahnuta web stranka. Prebehne jej nove stiahnutie.')
-        save_web_page_content(actual_content, destination)
-        download_images_from_web_page(directory, destination, url)
-        sys.exit()
-    d = content_differ(actual_content, data)
-    if '<script' in d or '<googletag' in d or 'javascript' in d or 'banner' in d:
-        if '<header' in d or '<link rel' in d or 'a href' in d or '<meta' in d:
-            print("Doslo k zmene na web stranke.")
-#            save_web_page_content(actual_content, destination)
-#            download_images_from_web_page(directory, destination, url)
+    print('Make temporary file.')
+    save_web_page_content(actual_content,temporary_html)
+    diff = []
+    with open(destination, "r") as local, open(temporary_html, "r") as actual:
+        for local_line, temp_line in zip(local, actual):
+            if local_line != temp_line:
+                if '<script' in temp_line or '</script>' in temp_line:
+                    pass
+                else:
+                    diff.append(temp_line)
+        if len(diff) != 0:
+            print('Doslo k zmenam na web stranke.\nBude stiahnuta jej aktualna verzia.')
+            save_web_page_content(actual_content,destination)
         else:
-            print("Obsah stiahnutej web stranky a jej online verzia sa zhoduju.")
-
-def content_differ(actual, new):
-    difference = difflib.ndiff(actual, new) 
-    difference = (''.join(difference))
-    difference = difference.replace('  ','')
-    d = difflib.ndiff(difference, new.replace('  ',''))
-    d = (''.join(d))
-    d = d.replace('  ','')
-    return d
+            print('Ziadna zmena.')
 
 def find_images_on_page(data):  
     try:
@@ -192,7 +181,7 @@ def edit_page_for_comparing(text_str, local_data, remote_data):
     dictionary = collections.OrderedDict(zip(images, new_img_urls))
     with open(text_str, 'w') as new_file:
         for key,value in dictionary.items():
-            data = data.replace(key, value)  # k remote urls pridava https:// = chyba(?) 
+            data = data.replace(key, value) 
         new_file.write(data)
     return new_file
 
@@ -204,6 +193,10 @@ def main():
             directory_to_download=sys.argv[2]
             local_web_page="page.html"
             local_html = os.path.join(directory_to_download, local_web_page)
+
+            temporary_web_page=".temp.html"
+            temporary_html = os.path.join(directory_to_download, temporary_web_page)
+
             web_page_url=check_correct_url(sys.argv[1])
             directory_presence = os.path.isdir(directory_to_download)
             local_url, remote_url = stored_data(directory_to_download)
@@ -217,7 +210,7 @@ def main():
             else:
                 local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
                 edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
-                compare_web_page_content(web_page_url, local_html)
+                compare_web_page_content(web_page_url, local_html,temporary_html)
                 edit_page_for_comparing(local_html, remote_img_list, local_img_list)
     except:
            help_syntax()
