@@ -29,10 +29,8 @@ def download_web_page_data(url):
 
 def save_web_page_content(data, downloaded_file):
     try:
-        print("Stahujem web stranku.")
         with open(downloaded_file,"w") as local_page:
             local_page.write(data)
-        print("Web stranka stiahnuta.")
         return local_page
     except:
         print("Vyskytla sa chyba pri stahovani web stranky.")
@@ -42,7 +40,6 @@ def compare_web_page_content(url,destination,temporary_html):
     print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
     directory = os.path.dirname(destination)
     actual_content = download_web_page_data(url)
-    print('Make temporary file.')
     save_web_page_content(actual_content,temporary_html)
     diff = []
     with open(destination, "r") as local, open(temporary_html, "r") as actual:
@@ -97,7 +94,6 @@ def download_images_from_web_page(directory, data_from_web_page,url):
     try:
         images = find_images_on_page(data_from_web_page)
         local_file,remote_file = stored_data(directory)
-        print("Stahujem obrazky. Cakajte prosim.")
         with open(local_file, 'w') as local_urls:
             for image in images:
                 image = check_picture_url(url, image)
@@ -117,7 +113,6 @@ def download_images_from_web_page(directory, data_from_web_page,url):
                     urllib.request.urlretrieve(image, picture_name)
             except (ValueError, urllib.error.URLError):
                 pass
-        print("Stahovanie obrazkov dokoncene.")
     except :
         print("Nedefinovana chyba pri stahovani obrazkov.")
 
@@ -193,25 +188,27 @@ def main():
             directory_to_download=sys.argv[2]
             local_web_page="page.html"
             local_html = os.path.join(directory_to_download, local_web_page)
-
             temporary_web_page=".temp.html"
             temporary_html = os.path.join(directory_to_download, temporary_web_page)
-
             web_page_url=check_correct_url(sys.argv[1])
             directory_presence = os.path.isdir(directory_to_download)
             local_url, remote_url = stored_data(directory_to_download)
             if directory_presence is not True:
                 make_aimed_directory(directory_to_download)
                 data_from_web_page = download_web_page_data(web_page_url)
+                print("Stahujem web stranku.")
                 save_web_page_content(data_from_web_page, local_html)
+                print("Stahujem obrazky. Cakajte prosim.")
                 download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
                 local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
                 edit_page_for_offline_reading(local_html, local_url, remote_url)
+                print('Hotovo.')
             else:
                 local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
                 edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
                 compare_web_page_content(web_page_url, local_html,temporary_html)
                 edit_page_for_comparing(local_html, remote_img_list, local_img_list)
+                print('Hotovo.')
     except:
            help_syntax()
 
