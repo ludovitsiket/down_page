@@ -1,4 +1,5 @@
 import urllib.request, sys, re, os, base64, requests, collections
+from time import localtime, strftime 
 
 def check_correct_url(url):
     if "http" not in url:
@@ -10,14 +11,21 @@ def help_syntax():
     print("""Syntax (Windows)          : python.exe down_page.py www.name_of_page.com local_directory_to_download """)
     print("""Skript vyzaduje nainstalovany python 3.x""")
 
-def make_aimed_directory(directory):
+def log(log_file):
+    with open(log_file, "a+") as log:
+        formated_date_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
+        log.write( "[  " + formated_date_time + "  ]" + "  :" + "  " + str(sys.exc_info()[0])+ str(sys.exc_info()[1]) + '\n' )
+    return
+
+def make_aimed_directory(directory,log_file):
     try:
         os.mkdir(directory)
     except Exception as e:
         msg = e
         print(msg)
+        log(log_file)
          
-def download_web_page_data(url):
+def download_web_page_data(url,log_file):
     try:
         content = requests.get(url)
         content.encoding = 'utf-8'
@@ -26,8 +34,9 @@ def download_web_page_data(url):
     except Exception as e:
         msg = e
         print(msg)
+        log(log_file)
 
-def save_web_page_content(data, downloaded_file):
+def save_web_page_content(data, downloaded_file,log_file):
     try:
         with open(downloaded_file,"w") as local_page:
             local_page.write(data)
@@ -35,12 +44,13 @@ def save_web_page_content(data, downloaded_file):
     except Exception as e:
         msg = e
         print(msg)
-
-def compare_web_page_content(url,destination,temporary_html):
+        log(log_file)
+        
+def compare_web_page_content(url,destination,temporary_html,log_file):
     print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
     directory = os.path.dirname(destination)
-    actual_content = download_web_page_data(url)
-    save_web_page_content(actual_content,temporary_html)
+    actual_content = download_web_page_data(url,log_file)
+    save_web_page_content(actual_content,temporary_html,log_file)
     diff = []
     with open(destination, "r") as local, open(temporary_html, "r") as actual:
         for local_line, temp_line in zip(local, actual):
@@ -51,17 +61,18 @@ def compare_web_page_content(url,destination,temporary_html):
                     diff.append(temp_line)
         if len(diff) != 0:
             print('Doslo k zmenam na web stranke.\nBude stiahnuta jej aktualna verzia.')
-            save_web_page_content(actual_content,destination)
+            save_web_page_content(actual_content,destination,log_file)
         else:
             print('Ziadna zmena.')
 
-def find_images_on_page(data):  
+def find_images_on_page(data,log_file):  
     try:
         img = re.findall('img .*?src="(.*?)"',data)
         return img
     except Exception as e:
         msg = e
         print(msg)
+        log(log_file)
 
 def join_path(directory, output_file):
     path = os.path.normpath(output_file)
@@ -90,9 +101,9 @@ def base64_picture_download(picture_url, local_picture):
     with open(local_picture, 'wb') as picture_result:
         picture_result.write(picture_64_decode)
 
-def download_images_from_web_page(directory, data_from_web_page,url): 
+def download_images_from_web_page(directory, data_from_web_page,url,log_file): 
     try:
-        images = find_images_on_page(data_from_web_page)
+        images = find_images_on_page(data_from_web_page,log_file)
         local_file,remote_file = stored_data(directory)
         with open(local_file, 'w') as local_urls:
             for image in images:
@@ -116,6 +127,7 @@ def download_images_from_web_page(directory, data_from_web_page,url):
     except Exception as e:
         msg = e
         print(msg)
+        log(log_file)
 
 def stored_data(directory):
     file1 = os.path.join(directory, ".local_url_file")
@@ -157,10 +169,10 @@ def find_and_replace_data(remote_url):
         new_img = new_img_urls.readlines()
     return new_img
 
-def edit_page_for_offline_reading(text_str, local_url, remote_url):
+def edit_page_for_offline_reading(text_str, local_url, remote_url,log_file):
     with open(text_str, 'r') as source_file:
         data = source_file.read()
-        images = find_images_on_page(data)
+        images = find_images_on_page(data,log_file)
         new_img_urls = find_and_replace_data(remote_url)
         dictionary = collections.OrderedDict(zip(images, new_img_urls))
         for key,value in dictionary.items():
@@ -186,6 +198,7 @@ def main():
         if len(sys.argv) > 3:
             sys.exit()
         else:
+            log_file = 'log_down_page.txt'
             directory_to_download=sys.argv[2]
             local_web_page="page.html"
             local_html = os.path.join(directory_to_download, local_web_page)
@@ -195,23 +208,24 @@ def main():
             directory_presence = os.path.isdir(directory_to_download)
             local_url, remote_url = stored_data(directory_to_download)
             if directory_presence is not True:
-                make_aimed_directory(directory_to_download)
-                data_from_web_page = download_web_page_data(web_page_url)
+                make_aimed_directory(directory_to_download,log_file)
+                data_from_web_page = download_web_page_data(web_page_url,log_file)
                 print("Stahujem web stranku.")
-                save_web_page_content(data_from_web_page, local_html)
+                save_web_page_content(data_from_web_page, local_html,log_file)
                 print("Stahujem obrazky. Cakajte prosim.")
-                download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url)
+                download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url,log_file)
                 local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-                edit_page_for_offline_reading(local_html, local_url, remote_url)
+                edit_page_for_offline_reading(local_html, local_url, remote_url,log_file)
                 print('Hotovo.')
             else:
                 local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
                 edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
-                compare_web_page_content(web_page_url, local_html,temporary_html)
+                compare_web_page_content(web_page_url, local_html,temporary_html,log_file)
                 edit_page_for_comparing(local_html, remote_img_list, local_img_list)
                 print('Hotovo.')
     except Exception as e:
         msg = e
         print(msg)
+        log(log_file)
 
 main()
