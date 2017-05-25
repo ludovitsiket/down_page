@@ -13,9 +13,9 @@ def help_syntax():
 def make_aimed_directory(directory):
     try:
         os.mkdir(directory)
-    except:
-        print("Nepodarilo sa vytvorit pozadovany adresar pre stiahnutie web stranky.")
-        sys.exit()
+    except Exception as e:
+        msg = e
+        print(msg)
          
 def download_web_page_data(url):
     try:
@@ -23,18 +23,18 @@ def download_web_page_data(url):
         content.encoding = 'utf-8'
         data = content.text
         return data
-    except:
-        print("Nie je mozne nacitat obsah web stranky.")
-        sys.exit()
+    except Exception as e:
+        msg = e
+        print(msg)
 
 def save_web_page_content(data, downloaded_file):
     try:
         with open(downloaded_file,"w") as local_page:
             local_page.write(data)
         return local_page
-    except:
-        print("Vyskytla sa chyba pri stahovani web stranky.")
-        sys.exit()
+    except Exception as e:
+        msg = e
+        print(msg)
 
 def compare_web_page_content(url,destination,temporary_html):
     print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
@@ -59,9 +59,9 @@ def find_images_on_page(data):
     try:
         img = re.findall('img .*?src="(.*?)"',data)
         return img
-    except:
-        print("Nepodarilo sa najst obrazky na zadanej web stranke.")
-        sys.exit()
+    except Exception as e:
+        msg = e
+        print(msg)
 
 def join_path(directory, output_file):
     path = os.path.normpath(output_file)
@@ -113,8 +113,9 @@ def download_images_from_web_page(directory, data_from_web_page,url):
                     urllib.request.urlretrieve(image, picture_name)
             except (ValueError, urllib.error.URLError):
                 pass
-    except :
-        print("Nedefinovana chyba pri stahovani obrazkov.")
+    except Exception as e:
+        msg = e
+        print(msg)
 
 def stored_data(directory):
     file1 = os.path.join(directory, ".local_url_file")
@@ -209,7 +210,8 @@ def main():
                 compare_web_page_content(web_page_url, local_html,temporary_html)
                 edit_page_for_comparing(local_html, remote_img_list, local_img_list)
                 print('Hotovo.')
-    except:
-           help_syntax()
+    except Exception as e:
+        msg = e
+        print(msg)
 
 main()
