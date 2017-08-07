@@ -7,8 +7,8 @@ def check_correct_url(url):
     return url
 
 def help_syntax():
-    print("""Syntax (GNU/Linux, macOS) : python down_page.py www.name_of_page.com local_directory_to_download """)
-    print("""Syntax (Windows)          : python.exe down_page.py www.name_of_page.com local_directory_to_download """)
+    print("""Syntax (GNU/Linux, macOS) : python down_page.py www.name_of_page.com """)
+    print("""Syntax (Windows)          : python.exe down_page.py www.name_of_page.com """)
     print("""Skript vyzaduje nainstalovany python 3.x""")
 
 def log(log_file):
@@ -45,12 +45,8 @@ def save_web_page_content(data, downloaded_file,log_file):
         msg = e
         print(msg)
         log(log_file)
-        
-def compare_web_page_content(url,destination,temporary_html,log_file):
-    print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
-    directory = os.path.dirname(destination)
-    actual_content = download_web_page_data(url,log_file)
-    save_web_page_content(actual_content,temporary_html,log_file)
+
+def check_for_changes(destination, temporary_html):
     diff = []
     with open(destination, "r") as local, open(temporary_html, "r") as actual:
         for local_line, temp_line in zip(local, actual):
@@ -59,11 +55,19 @@ def compare_web_page_content(url,destination,temporary_html,log_file):
                     pass
                 else:
                     diff.append(temp_line)
-        if len(diff) != 0:
-            print('Doslo k zmenam na web stranke.\nBude stiahnuta jej aktualna verzia.')
-            save_web_page_content(actual_content,destination,log_file)
-        else:
-            print('Ziadna zmena.')
+    return diff
+        
+def compare_web_page_content(url,destination,temporary_html,log_file):
+    print("Web stranka uz je stiahnuta. Porovnavam jej obsah s aktualnou online verziou. Cakajte prosim.")
+    directory = os.path.dirname(destination)
+    actual_content = download_web_page_data(url,log_file)
+    save_web_page_content(actual_content,temporary_html,log_file)
+    diff = check_for_changes(destination, temporary_html)
+    if len(diff) != 0:
+        print('Doslo k zmenam na web stranke.\nBude stiahnuta jej aktualna verzia.')
+        save_web_page_content(actual_content,destination,log_file)
+    else:
+        print('Ziadna zmena.')
 
 def find_images_on_page(data,log_file):  
     try:
@@ -193,18 +197,38 @@ def edit_page_for_comparing(text_str, local_data, remote_data):
         new_file.write(data)
     return new_file
 
+def formated_url(url):
+    part = url.replace('/','')
+    remove_http = 'http:'
+    remove_www = 'www'
+    http = len(remove_http)
+    www = len(remove_www)
+    part2 = part[http:]
+    formated_url = part2[www:].replace('.','', 1)
+    return formated_url
+
+def logo():
+    name = 'DOWN_PAGE'
+    symbol = '*'
+    line = symbol * len(name)
+    logo = line + '\n' + name + '\n' + line
+    return logo
+
 def main():
     try:
-        if len(sys.argv) > 3:
+        if len(sys.argv) != 2:
+            help_syntax()
             sys.exit()
         else:
+            title = logo()
+            print(title)
             log_file = 'log_down_page.txt'
-            directory_to_download=sys.argv[2]
             local_web_page="page.html"
+            web_page_url=check_correct_url(sys.argv[1])
+            directory_to_download = formated_url(web_page_url)
             local_html = os.path.join(directory_to_download, local_web_page)
             temporary_web_page=".temp.html"
             temporary_html = os.path.join(directory_to_download, temporary_web_page)
-            web_page_url=check_correct_url(sys.argv[1])
             directory_presence = os.path.isdir(directory_to_download)
             local_url, remote_url = stored_data(directory_to_download)
             if directory_presence is not True:
