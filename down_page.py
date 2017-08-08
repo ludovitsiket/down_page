@@ -7,9 +7,13 @@ def check_correct_url(url):
     return url
 
 def help_syntax():
-    print("""Syntax (GNU/Linux, macOS) : python down_page.py www.name_of_page.com """)
-    print("""Syntax (Windows)          : python.exe down_page.py www.name_of_page.com """)
-    print("""Skript vyzaduje nainstalovany python 3.x""")
+    print('Skript vyzaduje nainstalovany python 3.x')
+    print('Skript si url adresy nacita zo suboru. Kazda adresa musi byt na samostatnom riadku.')
+    print('Syntax (GNU/Linux, macOS) : python down_page.py -f')
+    print('Syntax (Windows)          : python.exe down_page.py -f')
+    print('Bez parametru -f sa ako parameter pouzije 1 url adresa ktora sa ma stiahnut.')
+    print('Syntax (GNU/Linux, macOS) : python down_page.py www.web_page.com')
+    print('Syntax (Windows)          : python.exe down_page.py www.web_page.com')
 
 def log(log_file):
     with open(log_file, "a+") as log:
@@ -207,12 +211,23 @@ def formated_url(url):
     formated_url = part2[www:].replace('.','', 1)
     return formated_url
 
-def logo():
-    name = 'DOWN_PAGE'
-    symbol = '*'
-    line = symbol * len(name)
-    logo = line + '\n' + name + '\n' + line
-    return logo
+def count_lines(file_name):
+    with open(file_name) as f:
+        for i, l in enumerate(f):
+            pass
+    return i + 1
+
+def read_urls_from_file(urls_file):
+    addr = []
+    i = 0
+    number_of_lines = count_lines(urls_file)
+    with open(urls_file, 'r') as urls:
+        while i < number_of_lines:
+            address = urls.readline()
+            address = address.replace('\n','')
+            addr.append(address)
+            i += 1
+    return addr
 
 def main():
     try:
@@ -220,33 +235,38 @@ def main():
             help_syntax()
             sys.exit()
         else:
-            title = logo()
-            print(title)
+            addr = []
             log_file = 'log_down_page.txt'
-            local_web_page="page.html"
-            web_page_url=check_correct_url(sys.argv[1])
-            directory_to_download = formated_url(web_page_url)
-            local_html = os.path.join(directory_to_download, local_web_page)
-            temporary_web_page=".temp.html"
-            temporary_html = os.path.join(directory_to_download, temporary_web_page)
-            directory_presence = os.path.isdir(directory_to_download)
-            local_url, remote_url = stored_data(directory_to_download)
-            if directory_presence is not True:
-                make_aimed_directory(directory_to_download,log_file)
-                data_from_web_page = download_web_page_data(web_page_url,log_file)
-                print("Stahujem web stranku.")
-                save_web_page_content(data_from_web_page, local_html,log_file)
-                print("Stahujem obrazky. Cakajte prosim.")
-                download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url,log_file)
-                local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-                edit_page_for_offline_reading(local_html, local_url, remote_url,log_file)
-                print('Hotovo.')
+            urls_file = 'urls.txt'
+            if sys.argv[1] == '-f':
+                addr = read_urls_from_file(urls_file)
             else:
-                local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
-                edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
-                compare_web_page_content(web_page_url, local_html,temporary_html,log_file)
-                edit_page_for_comparing(local_html, remote_img_list, local_img_list)
-                print('Hotovo.')
+                addr.append(sys.argv[1])
+            for item in addr:
+                local_web_page="page.html"
+                web_page_url=check_correct_url(item)
+                directory_to_download = formated_url(web_page_url)
+                local_html = os.path.join(directory_to_download, local_web_page)
+                temporary_web_page=".temp.html"
+                temporary_html = os.path.join(directory_to_download, temporary_web_page)
+                directory_presence = os.path.isdir(directory_to_download)
+                local_url, remote_url = stored_data(directory_to_download)
+                if directory_presence is not True:
+                    make_aimed_directory(directory_to_download,log_file)
+                    data_from_web_page = download_web_page_data(web_page_url,log_file)
+                    print("Stahujem web stranku",item)
+                    save_web_page_content(data_from_web_page, local_html,log_file)
+                    print("Stahujem obrazky. Cakajte prosim.")
+                    download_images_from_web_page(directory_to_download, data_from_web_page,web_page_url,log_file)
+                    local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
+                    edit_page_for_offline_reading(local_html, local_url, remote_url,log_file)
+                    print('Hotovo.')
+                else:
+                    local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url) 
+                    edit_page_for_comparing(local_html, local_img_list, remote_img_list) 
+                    compare_web_page_content(web_page_url, local_html,temporary_html,log_file)
+                    edit_page_for_comparing(local_html, remote_img_list, local_img_list)
+                    print('Hotovo.')
     except Exception as e:
         msg = e
         print(msg)
