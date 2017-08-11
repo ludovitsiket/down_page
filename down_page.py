@@ -15,19 +15,21 @@ def help_syntax():
     print('Syntax (GNU/Linux, macOS) : python down_page.py www.web_page.com')
     print('Syntax (Windows)          : python.exe down_page.py www.web_page.com')
 
+def write_to_log(error, log_file):
+    message = error
+    print(message)
+    log(log_file)
+
 def log(log_file):
     with open(log_file, "a+") as log:
         formated_date_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
         log.write( "[  " + formated_date_time + "  ]" + "  :" + "  " + str(sys.exc_info()[0])+ str(sys.exc_info()[1]) + '\n' )
-    return
 
 def make_aimed_directory(directory,log_file):
     try:
         os.mkdir(directory)
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
          
 def download_web_page_data(url,log_file):
     try:
@@ -36,9 +38,7 @@ def download_web_page_data(url,log_file):
         data = content.text
         return data
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
 
 def save_web_page_content(data, downloaded_file,log_file):
     try:
@@ -46,9 +46,7 @@ def save_web_page_content(data, downloaded_file,log_file):
             local_page.write(data)
         return local_page
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
 
 def check_for_changes(destination, temporary_html):
     diff = []
@@ -78,9 +76,7 @@ def find_images_on_page(data,log_file):
         img = re.findall('img .*?src="(.*?)"',data)
         return img
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
 
 def join_path(directory, output_file):
     path = os.path.normpath(output_file)
@@ -133,9 +129,7 @@ def download_images_from_web_page(directory, data_from_web_page,url,log_file):
             except (ValueError, urllib.error.URLError):
                 pass
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
 
 def stored_data(directory):
     file1 = os.path.join(directory, ".local_url_file")
@@ -268,8 +262,6 @@ def main():
                     edit_page_for_comparing(local_html, remote_img_list, local_img_list)
                     print('Hotovo.')
     except Exception as e:
-        msg = e
-        print(msg)
-        log(log_file)
+        write_to_log(e, log_file)
 
 main()
