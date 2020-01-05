@@ -31,9 +31,9 @@ def write_to_log(error, log_file):
 
 
 def log(log_file):
-    with open(log_file, "a+") as log:
+    with open(log_file, "a+") as lg:
         formated_date_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        log.write(
+        lg.write(
             "[  " + formated_date_time + "  ]" + "  :" + "  " + str(sys.exc_info()[0]) + str(sys.exc_info()[1]) + '\n')
 
 
@@ -105,8 +105,6 @@ def create_file_name(directory, picture):
         name = os.path.join(directory, name)
         name = name.replace(":", "")
         return name
-    else:
-        print('Nie je mozne vytvorit meno obrazka.')
 
 
 def check_picture_url(url, picture):
@@ -119,8 +117,8 @@ def check_picture_url(url, picture):
 
 def base64_picture_download(picture_url, local_picture):
     picture_read = urllib.request.urlopen(picture_url).read()
-    picture_64_encode = base64.encodestring(picture_read)
-    picture_64_decode = base64.decodestring(picture_64_encode)
+    picture_64_encode = base64.b64encode(picture_read)
+    picture_64_decode = base64.b64decode(picture_64_encode)
     with open(local_picture, 'wb') as picture_result:
         picture_result.write(picture_64_decode)
 
@@ -232,8 +230,8 @@ def formated_url(url):
     http = len(remove_http)
     www = len(remove_www)
     part2 = part[http:]
-    formated_url = part2[www:].replace('.', '', 1)
-    return formated_url
+    url = part2[www:].replace('.', '', 1)
+    return url
 
 
 def count_lines(file_name):
