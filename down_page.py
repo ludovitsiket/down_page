@@ -276,6 +276,25 @@ def argument_control():
     return log_file, urls_file, local_web_page, temporary_web_page, addr
 
 
+def save_web_page(web_page_url, log_file, local_html, directory_to_download, local_url, remote_url, item):
+    data_from_web_page = download_web_page_data(web_page_url, log_file)
+    print("Stahujem web stranku", item)
+    save_web_page_content(data_from_web_page, local_html, log_file)
+    print("Stahujem obrazky. Cakajte prosim.")
+    download_images_from_web_page(directory_to_download, data_from_web_page, web_page_url, log_file)
+    local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
+    edit_page_for_offline_reading(local_html, remote_url, log_file)
+    print('Hotovo.')
+
+
+def compare(local_url, remote_url, web_page_url, local_html, temporary_html, log_file):
+    local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url)
+    edit_page_for_comparing(local_html, local_img_list, remote_img_list)
+    compare_web_page_content(web_page_url, local_html, temporary_html, log_file)
+    edit_page_for_comparing(local_html, remote_img_list, local_img_list)
+    print('Hotovo.')
+
+
 def main():
     log_file, urls_file, local_web_page, temporary_web_page, addr = argument_control()
     for item in addr:
@@ -285,22 +304,12 @@ def main():
         temporary_html = os.path.join(directory_to_download, temporary_web_page)
         directory_presence = os.path.isdir(directory_to_download)
         local_url, remote_url = stored_data(directory_to_download)
+
         if directory_presence is not True:
             make_aimed_directory(directory_to_download, log_file)
-            data_from_web_page = download_web_page_data(web_page_url, log_file)
-            print("Stahujem web stranku", item)
-            save_web_page_content(data_from_web_page, local_html, log_file)
-            print("Stahujem obrazky. Cakajte prosim.")
-            download_images_from_web_page(directory_to_download, data_from_web_page, web_page_url, log_file)
-            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-            edit_page_for_offline_reading(local_html, remote_url, log_file)
-            print('Hotovo.')
+            save_web_page(web_page_url, log_file, local_html, directory_to_download, local_url, remote_url, item)
         else:
-            local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url)
-            edit_page_for_comparing(local_html, local_img_list, remote_img_list)
-            compare_web_page_content(web_page_url, local_html, temporary_html, log_file)
-            edit_page_for_comparing(local_html, remote_img_list, local_img_list)
-            print('Hotovo.')
+            compare(local_url, remote_url, web_page_url, local_html, temporary_html, log_file)
 
 
 main()
