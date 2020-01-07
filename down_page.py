@@ -254,43 +254,53 @@ def read_urls_from_file(urls_file):
     return addr
 
 
-def main():
+def files():
+    file_1 = 'log_down_page.txt'
+    file_2 = 'urls.txt'
+    file_3 = "page.html"
+    file_4 = ".temp.html"
+    return file_1, file_2, file_3, file_4
+
+
+def argument_control():
     if len(sys.argv) != 2:
         help_syntax()
         sys.exit()
     else:
         addr = []
-        log_file = 'log_down_page.txt'
-        urls_file = 'urls.txt'
+        log_file, urls_file, local_web_page, temporary_web_page = files()
         if sys.argv[1] == '-f':
             addr = read_urls_from_file(urls_file)
         else:
             addr.append(sys.argv[1])
-        for item in addr:
-            local_web_page = "page.html"
-            web_page_url = check_correct_url(item)
-            directory_to_download = formated_url(web_page_url)
-            local_html = os.path.join(directory_to_download, local_web_page)
-            temporary_web_page = ".temp.html"
-            temporary_html = os.path.join(directory_to_download, temporary_web_page)
-            directory_presence = os.path.isdir(directory_to_download)
-            local_url, remote_url = stored_data(directory_to_download)
-            if directory_presence is not True:
-                make_aimed_directory(directory_to_download, log_file)
-                data_from_web_page = download_web_page_data(web_page_url, log_file)
-                print("Stahujem web stranku", item)
-                save_web_page_content(data_from_web_page, local_html, log_file)
-                print("Stahujem obrazky. Cakajte prosim.")
-                download_images_from_web_page(directory_to_download, data_from_web_page, web_page_url, log_file)
-                local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
-                edit_page_for_offline_reading(local_html, remote_url, log_file)
-                print('Hotovo.')
-            else:
-                local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url)
-                edit_page_for_comparing(local_html, local_img_list, remote_img_list)
-                compare_web_page_content(web_page_url, local_html, temporary_html, log_file)
-                edit_page_for_comparing(local_html, remote_img_list, local_img_list)
-                print('Hotovo.')
+    return log_file, urls_file, local_web_page, temporary_web_page, addr
+
+
+def main():
+    log_file, urls_file, local_web_page, temporary_web_page, addr = argument_control()
+    for item in addr:
+        web_page_url = check_correct_url(item)
+        directory_to_download = formated_url(web_page_url)
+        local_html = os.path.join(directory_to_download, local_web_page)
+        temporary_html = os.path.join(directory_to_download, temporary_web_page)
+        directory_presence = os.path.isdir(directory_to_download)
+        local_url, remote_url = stored_data(directory_to_download)
+        if directory_presence is not True:
+            make_aimed_directory(directory_to_download, log_file)
+            data_from_web_page = download_web_page_data(web_page_url, log_file)
+            print("Stahujem web stranku", item)
+            save_web_page_content(data_from_web_page, local_html, log_file)
+            print("Stahujem obrazky. Cakajte prosim.")
+            download_images_from_web_page(directory_to_download, data_from_web_page, web_page_url, log_file)
+            local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
+            edit_page_for_offline_reading(local_html, remote_url, log_file)
+            print('Hotovo.')
+        else:
+            local_img_list, remote_img_list = change_data_in_memory(local_url, remote_url)
+            edit_page_for_comparing(local_html, local_img_list, remote_img_list)
+            compare_web_page_content(web_page_url, local_html, temporary_html, log_file)
+            edit_page_for_comparing(local_html, remote_img_list, local_img_list)
+            print('Hotovo.')
 
 
 main()
