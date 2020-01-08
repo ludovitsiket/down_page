@@ -115,17 +115,17 @@ def check_picture_url(url, picture):
     return picture
 
 
-def base64_picture_download(picture_url, local_picture):
-    picture_read = urllib.request.urlopen(picture_url).read()
-    picture_64_encode = base64.b64encode(picture_read)
+def base64_picture_download(url, local_picture):
+    picture = urllib.request.urlopen(url).read()
+    picture_64_encode = base64.b64encode(picture)
     picture_64_decode = base64.b64decode(picture_64_encode)
-    with open(local_picture, 'wb') as picture_result:
-        picture_result.write(picture_64_decode)
+    with open(local_picture, 'wb') as pic:
+        pic.write(picture_64_decode)
 
 
-def download_images_from_web_page(directory, data_from_web_page, url, log_file):
+def download_images_from_web_page(directory, data, url, log_file):
     try:
-        images = find_images_on_page(data_from_web_page, log_file)
+        images = find_images_on_page(data, log_file)
         local_file, remote_file = stored_data(directory)
         with open(local_file, 'w') as local_urls:
             for image in images:
@@ -146,6 +146,7 @@ def download_images_from_web_page(directory, data_from_web_page, url, log_file):
                     urllib.request.urlretrieve(image, picture_name)
             except (ValueError, urllib.error.URLError):
                 pass
+
     except Exception as e:
         write_to_log(e, log_file)
 
@@ -157,9 +158,9 @@ def stored_data(directory):
 
 
 def read_data(file1, file2):
-    with open(file1, 'r') as subor1, open(file2, 'r') as subor2:
-        data1 = subor1.readlines()
-        data2 = subor2.readlines()
+    with open(file1, 'r') as f_1, open(file2, 'r') as f_2:
+        data1 = f_1.readlines()
+        data2 = f_2.readlines()
     return data1, data2
 
 
@@ -169,11 +170,11 @@ def change_data_between_files(data):
     return value1, value2
 
 
-def write_data_per_line(aimed_file, data):
-    with open(aimed_file, 'w') as subor:
+def write_data_per_line(some_file, data):
+    with open(some_file, 'w') as f:
         for line in data:
-            subor.write(line)
-    return subor
+            f.write(line)
+    return f
 
 
 def get_and_change_data_in_files(file1, file2):
@@ -192,14 +193,14 @@ def change_data_in_memory(file1, file2):
 
 
 def find_and_replace_data(remote_url):
-    with open(remote_url, 'r') as new_img_urls:
-        new_img = new_img_urls.readlines()
+    with open(remote_url, 'r') as url:
+        new_img = url.readlines()
     return new_img
 
 
 def edit_page_for_offline_reading(text_str, remote_url, log_file):
-    with open(text_str, 'r') as source_file:
-        data = source_file.read()
+    with open(text_str, 'r') as f:
+        data = f.read()
         images = find_images_on_page(data, log_file)
         new_img_urls = find_and_replace_data(remote_url)
         dictionary = collections.OrderedDict(zip(images, new_img_urls))
@@ -211,8 +212,8 @@ def edit_page_for_offline_reading(text_str, remote_url, log_file):
 
 
 def edit_page_for_comparing(text_str, local_data, remote_data):
-    with open(text_str, 'r') as source_file:
-        data = source_file.read()
+    with open(text_str, 'r') as f:
+        data = f.read()
     images = local_data
     new_img_urls = remote_data
     dictionary = collections.OrderedDict(zip(images, new_img_urls))
@@ -241,17 +242,22 @@ def count_lines(file_name):
     return i + 1
 
 
-def read_urls_from_file(urls_file):
-    addr = []
+def read_urls(some_file, number, result):
     i = 0
-    number_of_lines = count_lines(urls_file)
-    with open(urls_file, 'r') as urls:
-        while i < number_of_lines:
-            address = urls.readline()
-            address = address.replace('\n', '')
-            addr.append(address)
+    with open(some_file, 'r') as f:
+        while i < number:
+            value = f.readline()
+            value = value.replace('\n', '')
+            result.append(value)
             i += 1
-    return addr
+    return result
+
+
+def read_urls_from_file(some_file):
+    address = []
+    lines = count_lines(some_file)
+    address = read_urls(some_file, lines, address)
+    return address
 
 
 def files():
@@ -284,7 +290,6 @@ def save_web_page(web_page_url, log_file, local_html, directory_to_download, loc
     download_images_from_web_page(directory_to_download, data_from_web_page, web_page_url, log_file)
     local_url, remote_url = get_and_change_data_in_files(local_url, remote_url)
     edit_page_for_offline_reading(local_html, remote_url, log_file)
-    print('Hotovo.')
 
 
 def compare(local_url, remote_url, web_page_url, local_html, temporary_html, log_file):
@@ -292,7 +297,6 @@ def compare(local_url, remote_url, web_page_url, local_html, temporary_html, log
     edit_page_for_comparing(local_html, local_img_list, remote_img_list)
     compare_web_page_content(web_page_url, local_html, temporary_html, log_file)
     edit_page_for_comparing(local_html, remote_img_list, local_img_list)
-    print('Hotovo.')
 
 
 def main():
@@ -310,6 +314,7 @@ def main():
             save_web_page(web_page_url, log_file, local_html, directory_to_download, local_url, remote_url, item)
         else:
             compare(local_url, remote_url, web_page_url, local_html, temporary_html, log_file)
+        print('Hotovo.')
 
 
 main()
