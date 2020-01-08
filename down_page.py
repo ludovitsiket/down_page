@@ -1,11 +1,10 @@
 import base64
 import collections
 import os
-import re
 import sys
 import urllib.request
 from time import localtime, strftime
-
+from re import findall
 import requests
 
 
@@ -18,10 +17,10 @@ def check_correct_url(url):
 def help_syntax():
     print('Skript vyzaduje nainstalovany python 3.x')
     print('Skript si url adresy nacita zo suboru. Kazda adresa musi byt na samostatnom riadku.')
-    print('Syntax (GNU/Linux, macOS) : python down_page.py -f')
+    print('Syntax (GNU/Linux, macOS) : python3 down_page.py -f')
     print('Syntax (Windows)          : python.exe down_page.py -f')
     print('Bez parametru -f sa ako parameter pouzije 1 url adresa ktora sa ma stiahnut.')
-    print('Syntax (GNU/Linux, macOS) : python down_page.py www.web_page.com')
+    print('Syntax (GNU/Linux, macOS) : python3 down_page.py www.web_page.com')
     print('Syntax (Windows)          : python.exe down_page.py www.web_page.com')
 
 
@@ -89,7 +88,7 @@ def compare_web_page_content(url, destination, temporary_html, log_file):
 
 def find_images_on_page(data, log_file):
     try:
-        img = re.findall('img .*?src="(.*?)"', data)
+        img = findall('img .*?src="(.*?)"', data)
         return img
     except Exception as e:
         write_to_log(e, log_file)
@@ -123,19 +122,27 @@ def base64_picture_download(url, local_picture):
         pic.write(picture_64_decode)
 
 
+def download_local(local_file, images, url, directory):
+    with open(local_file, 'w') as local_urls:
+        for image in images:
+            image = check_picture_url(url, image)
+            picture_name = create_file_name(directory, image)
+            picture_name = os.path.basename(picture_name)
+            local_urls.write(picture_name + '\n')
+
+
+def download_remote(remote_file, images):
+    with open(remote_file, 'w') as remote_urls:
+        for image in images:
+            remote_urls.write(image + '\n')
+
+
 def download_images_from_web_page(directory, data, url, log_file):
     try:
         images = find_images_on_page(data, log_file)
         local_file, remote_file = stored_data(directory)
-        with open(local_file, 'w') as local_urls:
-            for image in images:
-                image = check_picture_url(url, image)
-                picture_name = create_file_name(directory, image)
-                picture_name = os.path.basename(picture_name)
-                local_urls.write(picture_name + '\n')
-        with open(remote_file, 'w') as remote_urls:
-            for image in images:
-                remote_urls.write(image + '\n')
+        download_local(local_file, images, url, directory)
+        download_remote(remote_file, images)
         for image in images:
             image = check_picture_url(url, image)
             picture_name = create_file_name(directory, image)
