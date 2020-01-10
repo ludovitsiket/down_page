@@ -1,10 +1,10 @@
-import base64
 import collections
 import os
 import sys
 import urllib.request
 from time import localtime, strftime
 from re import findall
+from base64 import b64encode, b64decode
 import requests
 
 
@@ -116,8 +116,8 @@ def check_picture_url(url, picture):
 
 def base64_picture_download(url, local_picture):
     picture = urllib.request.urlopen(url).read()
-    picture_64_encode = base64.b64encode(picture)
-    picture_64_decode = base64.b64decode(picture_64_encode)
+    picture_64_encode = b64encode(picture)
+    picture_64_decode = b64decode(picture_64_encode)
     with open(local_picture, 'wb') as pic:
         pic.write(picture_64_decode)
 
