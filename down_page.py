@@ -8,19 +8,21 @@ from base64 import b64encode, b64decode
 import requests
 
 
-def check_correct_url(url):
-    if "http" not in url:
-        url = "http://" + url
-    return url
+class Log():
+    def __init__(self):
+        return
+
+    def check_correct_url(url):
+        if "http" not in url:
+            url = "http://" + url
+        return url
 
 
 def help_syntax():
     print('Script need python 3.x')
     print('Syntax (GNU/Linux, macOS) : python3 down_page.py -f')
     print('Syntax (Windows): python.exe down_page.py -f')
-    print('Without parameter -f is posible using one url adress:')
-    print('Syntax (GNU/Linux, macOS) : python3 down_page.py www.web_page.com')
-    print('Syntax (Windows): python.exe down_page.py www.web_page.com')
+    print('Without parameter -f is posible using one url adress')
 
 
 def write_log(error, log_file):
@@ -305,9 +307,10 @@ def compare(l_url, r_url, web_page_url, l_html, tmp, log):
 
 
 def main():
+    lClass = Log()
     log, urls_file, l_page, tmp, addr = argument_control()
     for item in addr:
-        url = check_correct_url(item)
+        url = lClass.check_correct_url(item)
         directory = formated_url(url)
         l_html = os.path.join(directory, l_page)
         temp_html = os.path.join(directory, tmp)
