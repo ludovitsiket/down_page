@@ -9,13 +9,23 @@ import requests
 
 
 class Log():
-    def __init__(self):
-        return
+    def __init__(self, error):
+        self.error = error
 
     def check_correct_url(url):
         if "http" not in url:
             url = "http://" + url
         return url
+
+    def write_log(error, log_file):
+        print(error)
+        Log.log(log_file)
+
+    def log(value):
+        with open(value, "a+") as log:
+            x = strftime("%Y-%m-%d %H:%M:%S", localtime())
+            log.write("[  " + x + "  ]" + "  :" + "  " +
+                      str(sys.exc_info()[0]) + str(sys.exc_info()[1]) + '\n')
 
 
 def help_syntax():
@@ -25,34 +35,20 @@ def help_syntax():
     print('Without parameter -f is posible using one url adress')
 
 
-def write_log(error, log_file):
-    print(error)
-    log(log_file)
-
-
-def log(log_file):
-    with open(log_file, "a+") as log:
-        date_time = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        log.write(
-            "[  " + date_time + "  ]" + "  :" + "  " + str(sys.exc_info()[0]) +
-            str(sys.exc_info()[1]) + '\n')
-
-
 def make_dir(directory, log):
     try:
         os.mkdir(directory)
     except Exception as e:
-        write_log(e, log)
+        Log.write_log(e, log)
 
 
 def download_data(url, log):
     try:
         content = requests.get(url)
         content.encoding = 'utf-8'
-        data = content.text
-        return data
+        return content.text
     except Exception as e:
-        write_log(e, log)
+        Log.write_log(e, log)
 
 
 def save_content(data, content, log):
@@ -61,7 +57,7 @@ def save_content(data, content, log):
             local.write(data)
         return local
     except Exception as e:
-        write_log(e, log)
+        Log.write_log(e, log)
 
 
 def check_for_changes(dest, temp):
@@ -78,22 +74,20 @@ def check_for_changes(dest, temp):
 
 def compare_content(url, dest, temp, log):
     print("Web page is downloaded. Comparing with actual online version.")
-    actual_content = download_data(url, log)
-    save_content(actual_content, temp, log)
+    save_content(download_data(url, log), temp, log)
     diff = check_for_changes(dest, temp)
     if len(diff) != 0:
         print('Offline web page is old.\nDownloading actual version.')
-        save_content(actual_content, dest, log)
+        save_content(download_data(url, log), dest, log)
     else:
         print('Without changes.')
 
 
 def find_images(data, log):
     try:
-        img = findall('img .*?src="(.*?)"', data)
-        return img
+        return findall('img .*?src="(.*?)"', data)
     except Exception as e:
-        write_log(e, log)
+        Log.write_log(e, log)
 
 
 def join_path(directory, output_file):
@@ -103,9 +97,7 @@ def join_path(directory, output_file):
 def create_file_name(directory, pic):
     if True:
         name = join_path(directory, pic).replace("/", "")
-        name = os.path.join(directory, name)
-        name = name.replace(":", "")
-        return name
+        return os.path.join(directory, name).replace(":", "")
 
 
 def check_picture_url(url, pic):
@@ -117,11 +109,9 @@ def check_picture_url(url, pic):
 
 
 def base64_pic_down(url, local_picture):
-    pic = urllib.request.urlopen(url).read()
-    pic_64_encode = b64encode(pic)
-    pic_64_decode = b64decode(pic_64_encode)
+    pic_64_encode = b64encode(urllib.request.urlopen(url).read())
     with open(local_picture, 'wb') as picture:
-        picture.write(pic_64_decode)
+        picture.write(b64decode(pic_64_encode))
 
 
 def download_local(local_file, images, url, directory):
@@ -139,6 +129,16 @@ def download_remote(remote_file, images):
             remote_urls.write(image + '\n')
 
 
+def check_b64(image, pic_name):
+    try:
+        if "base64" in image:
+            base64_pic_down(image, pic_name)
+        else:
+            urllib.request.urlretrieve(image, pic_name)
+    except (ValueError, urllib.error.URLError):
+        pass
+
+
 def download_images(directory, data, url, log):
     try:
         images = find_images(data, log)
@@ -147,22 +147,15 @@ def download_images(directory, data, url, log):
         download_remote(remote_file, images)
         for image in images:
             image = check_picture_url(url, image)
-            pic_name = create_file_name(directory, image)
-            try:
-                if "base64" in image:
-                    base64_pic_down(image, pic_name)
-                else:
-                    urllib.request.urlretrieve(image, pic_name)
-            except (ValueError, urllib.error.URLError):
-                pass
+            check_b64(image, create_file_name(directory, image))
     except Exception as e:
-        write_log(e, log)
+        Log.write_log(e, log)
 
 
 def stored_data(directory):
-    file1 = os.path.join(directory, ".local_url_file")
-    file2 = os.path.join(directory, ".remote_url_file")
-    return file1, file2
+    return os.path.join(
+        directory, ".local_url_file"), os.path.join(
+        directory, ".remote_url_file")
 
 
 def read_data(file1, file2):
@@ -173,9 +166,7 @@ def read_data(file1, file2):
 
 
 def change_data_between_files(data):
-    value1 = list(data.keys())
-    value2 = list(data.values())
-    return value1, value2
+    return list(data.keys()), list(data.values())
 
 
 def write_data_per_line(some_file, data):
@@ -202,45 +193,36 @@ def change_data(file1, file2):
 
 def find_and_replace_data(remote_url):
     with open(remote_url, 'r') as url:
-        new_img = url.readlines()
-    return new_img
+        return url.readlines()
 
 
 def offline_page(text_str, remote_url, log_file):
     with open(text_str, 'r') as f:
         data = f.read()
-        images = find_images(data, log_file)
         new_img_urls = find_and_replace_data(remote_url)
-        dic = collections.OrderedDict(zip(images, new_img_urls))
+        dic = collections.OrderedDict(
+            zip(find_images(data, log_file), new_img_urls))
         for key, value in dic.items():
             data = data.replace(key, value)
     with open(text_str, 'w') as new_file:
-        new_file.write(data)
-    return new_file
+        return new_file.write(data)
 
 
 def comparing_content(text_str, local_data, remote_data):
     with open(text_str, 'r') as f:
         data = f.read()
-    images = local_data
-    new_img_urls = remote_data
-    dictionary = collections.OrderedDict(zip(images, new_img_urls))
+    dictionary = collections.OrderedDict(zip(local_data, remote_data))
     with open(text_str, 'w') as new_file:
         for key, value in dictionary.items():
             data = data.replace(key, value)
-        new_file.write(data)
-    return new_file
+        return new_file.write(data)
 
 
 def formated_url(url):
     part = url.replace('/', '')
-    remove_http = 'http:'
-    remove_www = 'www'
-    http = len(remove_http)
-    www = len(remove_www)
-    part2 = part[http:]
-    url = part2[www:].replace('.', '', 1)
-    return url
+    http = len('http:')
+    www = len('www')
+    return part[http:][www:].replace('.', '', 1)
 
 
 def count_lines(file_name):
@@ -254,8 +236,7 @@ def read_urls(some_file, number, result):
     i = 0
     with open(some_file, 'r') as f:
         while i < number:
-            value = f.readline()
-            value = value.replace('\n', '')
+            value = f.readline().replace('\n', '')
             result.append(value)
             i += 1
     return result
@@ -263,9 +244,7 @@ def read_urls(some_file, number, result):
 
 def url_from_file(some_file):
     address = []
-    lines = count_lines(some_file)
-    address = read_urls(some_file, lines, address)
-    return address
+    return read_urls(some_file, count_lines(some_file), address)
 
 
 def files():
@@ -291,10 +270,9 @@ def argument_control():
 
 
 def save_page(url, log, l_html, directory, l_url, r_url, item):
-    data = download_data(url, log)
     print("Downloading web page", item)
-    save_content(data, l_html, log)
-    download_images(directory, data, url, log)
+    save_content(download_data(url, log), l_html, log)
+    download_images(directory, download_data(url, log), url, log)
     l_url, remote_url = change_files_data(l_url, r_url)
     offline_page(l_html, r_url, log)
 
@@ -307,11 +285,10 @@ def compare(l_url, r_url, web_page_url, l_html, tmp, log):
 
 
 def main():
-    lClass = Log()
     log, urls_file, l_page, tmp, addr = argument_control()
     for item in addr:
-        url = lClass.check_correct_url(item)
-        directory = formated_url(url)
+        url = Log.check_correct_url(item)
+        directory = formated_url(Log.check_correct_url(item))
         l_html = os.path.join(directory, l_page)
         temp_html = os.path.join(directory, tmp)
         dir_exist = os.path.isdir(directory)
