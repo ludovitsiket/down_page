@@ -14,8 +14,7 @@ class Log():
 
     def check_correct_url(url):
         if "http" not in url:
-            url = "http://" + url
-        return url
+            return ("http://" + url)
 
     def write_log(error, log_file):
         print(error)
@@ -75,8 +74,7 @@ def check_for_changes(dest, temp):
 def compare_content(url, dest, temp, log):
     print("Web page is downloaded. Comparing with actual online version.")
     save_content(download_data(url, log), temp, log)
-    diff = check_for_changes(dest, temp)
-    if len(diff) != 0:
+    if len(check_for_changes(dest, temp)) != 0:
         print('Offline web page is old.\nDownloading actual version.')
         save_content(download_data(url, log), dest, log)
     else:
@@ -96,16 +94,20 @@ def join_path(directory, output_file):
 
 def create_file_name(directory, pic):
     if True:
-        name = join_path(directory, pic).replace("/", "")
-        return os.path.join(directory, name).replace(":", "")
+        return os.path.join(
+            directory,
+            join_path(
+                directory,
+                pic).replace(
+                "/",
+                "")).replace(
+            ":",
+            "")
 
 
 def check_picture_url(url, pic):
-    if "http" in pic:
-        pic = pic
-    else:
-        pic = (url + pic)
-    return pic
+    if "http" not in pic:
+        return (url + pic)
 
 
 def base64_pic_down(url, local_picture):
@@ -219,10 +221,9 @@ def comparing_content(text_str, local_data, remote_data):
 
 
 def formated_url(url):
-    part = url.replace('/', '')
     http = len('http:')
     www = len('www')
-    return part[http:][www:].replace('.', '', 1)
+    return url.replace('/', '')[http:][www:].replace('.', '', 1)
 
 
 def count_lines(file_name):
@@ -236,8 +237,7 @@ def read_urls(some_file, number, result):
     i = 0
     with open(some_file, 'r') as f:
         while i < number:
-            value = f.readline().replace('\n', '')
-            result.append(value)
+            result.append(f.readline().replace('\n', ''))
             i += 1
     return result
 
