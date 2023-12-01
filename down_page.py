@@ -270,11 +270,14 @@ def argument_control():
 
 
 def save_page(url, log, l_html, directory, l_url, r_url, item):
-    print("Downloading web page", item)
-    save_content(download_data(url, log), l_html, log)
-    download_images(directory, download_data(url, log), url, log)
-    l_url, remote_url = change_files_data(l_url, r_url)
-    offline_page(l_html, r_url, log)
+    try:
+        print("Downloading web page", item)
+        save_content(download_data(url, log), l_html, log)
+        download_images(directory, download_data(url, log), url, log)
+        l_url, remote_url = change_files_data(l_url, r_url)
+        offline_page(l_html, r_url, log)
+    except FileNotFoundError as e:
+        print(e)
 
 
 def compare(l_url, r_url, web_page_url, l_html, tmp, log):
