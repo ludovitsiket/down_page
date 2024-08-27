@@ -1,0 +1,7 @@
+urls.txt
+.idea/
+*.swp
+build/
+dist/
+*.spec
+log_down_page.txt
