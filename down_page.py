@@ -28,10 +28,9 @@ class Log():
 
 
 def help_syntax():
-    print('Script need python 3.x')
     print('Syntax (GNU/Linux, macOS) : python3 down_page.py -f')
     print('Syntax (Windows): python.exe down_page.py -f')
-    print('Without parameter -f is posible using one url adress')
+    print('Instead of parameter -f is posible using one url adress')
 
 
 def make_dir(directory, log):
@@ -221,9 +220,13 @@ def comparing_content(text_str, local_data, remote_data):
 
 
 def formated_url(url):
-    http = len('http:')
-    www = len('www')
-    return url.replace('/', '')[http:][www:].replace('.', '', 1)
+    try:
+        http = len('http:')
+        www = len('www')
+        return url.replace('/', '')[http:][www:].replace('.', '', 1)
+    except AttributeError as e:
+        print(e)
+        sys.exit(0)
 
 
 def count_lines(file_name):
@@ -288,20 +291,23 @@ def compare(l_url, r_url, web_page_url, l_html, tmp, log):
 
 
 def main():
-    log, urls_file, l_page, tmp, addr = argument_control()
-    for item in addr:
-        url = Log.check_correct_url(item)
-        directory = formated_url(Log.check_correct_url(item))
-        l_html = os.path.join(directory, l_page)
-        temp_html = os.path.join(directory, tmp)
-        dir_exist = os.path.isdir(directory)
-        l_url, r_url = stored_data(directory)
-        if dir_exist is not True:
-            make_dir(directory, log)
-            save_page(url, log, l_html, directory, l_url, r_url, item)
-        else:
-            compare(l_url, r_url, url, l_html, temp_html, log)
-        print('Finish.')
+    try:
+        log, urls_file, l_page, tmp, addr = argument_control()
+        for item in addr:
+            url = Log.check_correct_url(item)
+            directory = formated_url(Log.check_correct_url(item))
+            l_html = os.path.join(directory, l_page)
+            temp_html = os.path.join(directory, tmp)
+            dir_exist = os.path.isdir(directory)
+            l_url, r_url = stored_data(directory)
+            if dir_exist is not True:
+                make_dir(directory, log)
+                save_page(url, log, l_html, directory, l_url, r_url, item)
+            else:
+                compare(l_url, r_url, url, l_html, temp_html, log)
+            print('Finish.')
+    except KeyboardInterrupt as e:
+        print(e)
 
 
 main()
